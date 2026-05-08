@@ -7,13 +7,16 @@ import type { ReviewCard } from "@/lib/storage/interface";
 
 interface HomeScreenProps {
   xp: number;
+  dailyXp: number;
+  targetXp: number;
+  streak: number;
   currentAyah: string;
   storageMode: "guest" | "cloud";
   onStartReview: () => void;
   onStartLesson: (ref: string) => void;
 }
 
-export default function HomeScreen({ xp, currentAyah, storageMode, onStartReview, onStartLesson }: HomeScreenProps) {
+export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah, storageMode, onStartReview, onStartLesson }: HomeScreenProps) {
   const lv = getLevel(xp);
   const nx = getNextLevel(xp);
   const xpToNext = nx ? nx.minXP - xp : 0;
@@ -38,7 +41,8 @@ export default function HomeScreen({ xp, currentAyah, storageMode, onStartReview
 
   // Format current ayah for display
   const [surahNum] = currentAyah.split(":");
-  const surahInt = parseInt(surahNum, 10);
+  
+  const pct = targetXp > 0 ? Math.min(100, Math.round((dailyXp / targetXp) * 100)) : 0;
 
   return (
     <div className="flex-1 overflow-y-auto p-3.5">
@@ -58,13 +62,24 @@ export default function HomeScreen({ xp, currentAyah, storageMode, onStartReview
       <div className="bg-white border-2 border-gray2 rounded-[var(--radius-card)] p-3 mb-3">
         <div className="flex justify-between items-center mb-2">
           <span className="text-[12px] font-extrabold text-text">Daily Goal</span>
-          <span className="text-[12px] font-bold text-green-dark">{learnedCount > 0 ? `${Math.min(100, Math.round((learnedCount / 50) * 100))}%` : "0%"}</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-bold text-gray-400">{dailyXp} / {targetXp} XP</span>
+            <span className="text-[12px] font-black text-green-dark">{pct}%</span>
+          </div>
         </div>
         <div className="flex gap-1">
-          {[10, 20, 30, 40, 50].map((threshold, i) => (
-            <div key={i} className={`flex-1 h-[9px] rounded-full transition-colors ${learnedCount >= threshold ? "bg-green" : "bg-gray2"}`} />
+          {[1, 2, 3, 4, 5].map((segment) => (
+            <div 
+              key={segment} 
+              className={`flex-1 h-[9px] rounded-full transition-all duration-500 ${pct >= segment * 20 ? "bg-green shadow-[0_0_8px_rgba(88,204,2,0.3)]" : "bg-gray2"}`} 
+            />
           ))}
         </div>
+        {pct >= 100 && (
+          <div className="mt-2 text-[10px] font-black text-green-dark uppercase tracking-widest text-center animate-bounce">
+            🎉 Daily Goal Met!
+          </div>
+        )}
       </div>
 
       {/* Stats */}
@@ -72,7 +87,7 @@ export default function HomeScreen({ xp, currentAyah, storageMode, onStartReview
         {[
           { emoji: "📚", value: String(learnedCount), label: "Learned" },
           { emoji: "⚡", value: String(xp), label: "Total XP" },
-          { emoji: "📖", value: currentAyah, label: "Current" },
+          { emoji: "🔥", value: String(streak), label: "Streak" },
         ].map((s) => (
           <div key={s.label} className="bg-gray3 rounded-[var(--radius-sm)] p-3 text-center">
             <div className="text-[20px] mb-1">{s.emoji}</div>

@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Scheherazade+New:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;600;700&display=swap');
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Scheherazade+New:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;600;700&display=swap');
 
 @theme {
   --color-green: #58CC02;
@@ -33,9 +33,17 @@
   --radius-pill: 99px;
 }
 
+@font-face {
+  font-family: 'UthmanicHafs';
+  src: url('https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2') format('woff2'),
+    url('https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.ttf') format('truetype');
+  font-display: swap;
+}
+
 body {
   font-family: 'DM Sans', sans-serif;
-  background: #F0F4F8; /* Light blue-gray background for the "desk" */
+  background: #F0F4F8;
+  /* Light blue-gray background for the "desk" */
   color: var(--color-text);
   display: flex;
   justify-content: center;
@@ -46,7 +54,8 @@ body {
 
 /* App Shell - The mobile container */
 .app-shell {
-  width: 440px; /* Fixed width as per prototype */
+  width: 440px;
+  /* Fixed width as per prototype */
   height: 92vh;
   max-height: 850px;
   margin: 0 auto;
@@ -55,36 +64,192 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
   border: 8px solid #FFFFFF;
   position: relative;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
+/* ──────────────────────────────────────────────────────────── */
+/* GLOBAL DARK MODE OVERRIDES */
+/* ──────────────────────────────────────────────────────────── */
+.app-shell.dark {
+  --color-bg: #0B1121;
+  --color-card: #0F172A;
+  --color-gray1: #4B5563;
+  --color-gray2: #1E293B;
+  --color-gray3: #1E293B;
+  --color-text: #F8FAFC;
+  --color-text-light: #94A3B8;
+
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-color: #1E293B;
+}
+
+/* Force consistency on common elements in Dark Mode */
+.app-shell.dark .bg-white {
+  background-color: var(--color-card) !important;
+}
+
+.app-shell.dark .text-text {
+  color: var(--color-text) !important;
+}
+
+.app-shell.dark .text-text-light {
+  color: var(--color-text-light) !important;
+}
+
+.app-shell.dark .border-gray2 {
+  border-color: var(--color-gray2) !important;
+}
+
+.app-shell.dark .bg-gray3 {
+  background-color: var(--color-gray3) !important;
+}
+
+.app-shell.dark input,
+.app-shell.dark select {
+  background-color: var(--color-gray3);
+  color: var(--color-text);
+  border-color: var(--color-gray2);
+}
+
+.app-shell.dark [class*="bg-"] {
+  border-color: var(--color-gray2);
+}
+
+/* Generic fallback */
+.app-shell.dark .bg-\[\#F0F4F8\] {
+  background-color: #020617 !important;
+}
+
+
 /* Arabic text */
-.font-amiri { font-family: 'Scheherazade New', serif; }
-.font-naskh { font-family: 'Noto Naskh Arabic', serif; }
-.font-tamil { font-family: 'Noto Sans Tamil', sans-serif; }
+.font-amiri,
+.font-naskh {
+  font-family: 'UthmanicHafs', 'Scheherazade New', serif;
+  direction: rtl;
+  text-align: right;
+  line-height: 1.8;
+}
+
+.font-tamil {
+  font-family: 'Noto Sans Tamil', sans-serif;
+}
 
 /* Animations */
-@keyframes popIn { 0%{transform:scale(.4);opacity:0} 100%{transform:scale(1);opacity:1} }
-@keyframes xpBurst { 0%{transform:translate(-50%,-50%) scale(0);opacity:1} 50%{transform:translate(-50%,-90%) scale(1.1);opacity:1} 100%{transform:translate(-50%,-140%) scale(.9);opacity:0} }
-@keyframes spin { to{transform:rotate(360deg)} }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
-@keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+@keyframes popIn {
+  0% {
+    transform: scale(.4);
+    opacity: 0
+  }
 
-.animate-pop-in { animation: popIn .6s cubic-bezier(.34,1.56,.64,1); }
-.animate-xp-burst { animation: xpBurst .85s cubic-bezier(.34,1.56,.64,1) forwards; }
-.animate-spin { animation: spin .7s linear infinite; }
-.animate-pulse-load { animation: pulse 1.2s infinite; }
-.animate-fade-in { animation: fadeIn .35s ease forwards; }
+  100% {
+    transform: scale(1);
+    opacity: 1
+  }
+}
+
+@keyframes xpBurst {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1
+  }
+
+  50% {
+    transform: translate(-50%, -90%) scale(1.1);
+    opacity: 1
+  }
+
+  100% {
+    transform: translate(-50%, -140%) scale(.9);
+    opacity: 0
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg)
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1
+  }
+
+  50% {
+    opacity: .35
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px)
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0)
+  }
+}
+
+.animate-pop-in {
+  animation: popIn .6s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.animate-xp-burst {
+  animation: xpBurst .85s cubic-bezier(.34, 1.56, .64, 1) forwards;
+}
+
+.animate-spin {
+  animation: spin .7s linear infinite;
+}
+
+.animate-pulse-load {
+  animation: pulse 1.2s infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn .35s ease forwards;
+}
 
 /* Pill / Chip base */
-.pill { font-size: 10px; padding: 3px 8px; border-radius: var(--radius-pill); font-weight: 800; }
-.pill-new { background: var(--color-green-light); color: var(--color-green-dark); }
-.pill-known { background: var(--color-gray2); color: var(--color-gray1); }
-.pill-reinforce { background: var(--color-purple-light); color: var(--color-purple-dark); }
-.pill-review { background: var(--color-blue-light); color: var(--color-blue-dark); }
-.pill-live { background: var(--color-teal-light); color: var(--color-teal-dark); }
+.pill {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  font-weight: 800;
+}
+
+.pill-new {
+  background: var(--color-green-light);
+  color: var(--color-green-dark);
+}
+
+.pill-known {
+  background: var(--color-gray2);
+  color: var(--color-gray1);
+}
+
+.pill-reinforce {
+  background: var(--color-purple-light);
+  color: var(--color-purple-dark);
+}
+
+.pill-review {
+  background: var(--color-blue-light);
+  color: var(--color-blue-dark);
+}
+
+.pill-live {
+  background: var(--color-teal-light);
+  color: var(--color-teal-dark);
+}
 
 /* CTA Button */
 .cta-btn {
@@ -101,8 +266,18 @@ body {
   box-shadow: 0 4px 0 var(--color-green-dark);
   transition: all .1s;
 }
-.cta-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--color-green-dark); }
-.cta-btn:disabled { background: var(--color-gray2); color: var(--color-gray1); box-shadow: none; cursor: not-allowed; }
+
+.cta-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--color-green-dark);
+}
+
+.cta-btn:disabled {
+  background: var(--color-gray2);
+  color: var(--color-gray1);
+  box-shadow: none;
+  cursor: not-allowed;
+}
 
 /* Section header */
 .section-header {
@@ -116,6 +291,7 @@ body {
   align-items: center;
   gap: 5px;
 }
+
 .section-header::after {
   content: '';
   flex: 1;
@@ -125,7 +301,8 @@ body {
 
 /* Spinner */
 .spinner {
-  width: 14px; height: 14px;
+  width: 14px;
+  height: 14px;
   border: 2px solid var(--color-gray2);
   border-top-color: var(--color-blue);
   border-radius: 50%;

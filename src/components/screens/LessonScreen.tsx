@@ -43,6 +43,7 @@ interface LessonScreenProps {
   storageMode: "guest" | "cloud";
   onGoHome: () => void;
   onAwardXP: (amount: number, msg: string) => void;
+  onLoseHeart: () => void;
   onNextAyah: (nextKey: string) => void;
 }
 
@@ -58,7 +59,7 @@ function getShortTafsir(text: string) {
 
 
 
-export default function LessonScreen({ ayahKey, lang, theme, storageMode, onGoHome, onAwardXP, onNextAyah }: LessonScreenProps) {
+export default function LessonScreen({ ayahKey, lang, theme, storageMode, onGoHome, onAwardXP, onLoseHeart, onNextAyah }: LessonScreenProps) {
   const [data, setData] = useState<LessonData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

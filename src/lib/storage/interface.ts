@@ -66,11 +66,23 @@ export interface StorageProvider {
   /** Get total XP */
   getXP(): Promise<number>;
 
+  /** Get hearts state */
+  getHearts(): Promise<{ count: number; lastRefill: string }>;
+
+  /** Save hearts state */
+  saveHearts(count: number, lastRefill: string): Promise<void>;
+
   /** Get current reading position (Ayah Key) */
   getCurrentAyah(): Promise<string>;
 
   /** Save current reading position */
   saveCurrentAyah(ayahKey: string): Promise<void>;
+
+  /** Get daily goal progress for today */
+  getDailyGoal(): Promise<{ xp_earned: number; completed: boolean }>;
+
+  /** Update daily goal progress */
+  updateDailyGoal(xp_earned: number, completed?: boolean): Promise<void>;
 
   /** Get words due for review */
   getDueReviews(limit?: number): Promise<ReviewCard[]>;

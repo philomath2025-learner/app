@@ -114,6 +114,25 @@ export class LocalStorageProvider implements StorageProvider {
     return this.xp;
   }
 
+  async getHearts(): Promise<{ count: number; lastRefill: string }> {
+    if (typeof window !== "undefined") {
+      const count = localStorage.getItem("quranlingo_hearts");
+      const lastRefill = localStorage.getItem("quranlingo_last_refill");
+      return {
+        count: count ? parseInt(count, 10) : 5,
+        lastRefill: lastRefill || new Date().toISOString()
+      };
+    }
+    return { count: 5, lastRefill: new Date().toISOString() };
+  }
+
+  async saveHearts(count: number, lastRefill: string): Promise<void> {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("quranlingo_hearts", count.toString());
+      localStorage.setItem("quranlingo_last_refill", lastRefill);
+    }
+  }
+
   async getCurrentAyah(): Promise<string> {
     if (typeof window !== "undefined") {
       const savedAyah = localStorage.getItem("quranlingo_current_ayah");
@@ -125,6 +144,22 @@ export class LocalStorageProvider implements StorageProvider {
   async saveCurrentAyah(ayahKey: string): Promise<void> {
     if (typeof window !== "undefined") {
       localStorage.setItem("quranlingo_current_ayah", ayahKey);
+    }
+  }
+
+  async getDailyGoal(): Promise<{ xp_earned: number; completed: boolean }> {
+    if (typeof window !== "undefined") {
+      const today = new Date().toISOString().split('T')[0];
+      const data = localStorage.getItem(`quranlingo_goal_${today}`);
+      if (data) return JSON.parse(data);
+    }
+    return { xp_earned: 0, completed: false };
+  }
+
+  async updateDailyGoal(xp: number, completed: boolean = false): Promise<void> {
+    if (typeof window !== "undefined") {
+      const today = new Date().toISOString().split('T')[0];
+      localStorage.setItem(`quranlingo_goal_${today}`, JSON.stringify({ xp_earned: xp, completed }));
     }
   }
 

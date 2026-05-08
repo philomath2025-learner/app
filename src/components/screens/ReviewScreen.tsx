@@ -8,9 +8,11 @@ import type { ReviewCard } from "@/lib/storage/interface";
 interface ReviewScreenProps {
   storageMode: "guest" | "cloud";
   onGoHome: () => void;
+  onLoseHeart: () => void;
+  limit: number;
 }
 
-export default function ReviewScreen({ storageMode, onGoHome }: ReviewScreenProps) {
+export default function ReviewScreen({ storageMode, onGoHome, onLoseHeart, limit }: ReviewScreenProps) {
   const [cards, setCards] = useState<ReviewCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [idx, setIdx] = useState(0);
@@ -18,16 +20,17 @@ export default function ReviewScreen({ storageMode, onGoHome }: ReviewScreenProp
   const [correct, setCorrect] = useState(0);
   const [wrong, setWrong] = useState(0);
   const [done, setDone] = useState(false);
+  const [mistakeTracker, setMistakeTracker] = useState<Record<string, number>>({});
 
   useEffect(() => {
     async function loadDueReviews() {
       const provider = getStorageProvider(storageMode);
-      const due = await provider.getDueReviews(20);
+      const due = await provider.getDueReviews(limit);
       setCards(due);
       setLoading(false);
     }
     loadDueReviews();
-  }, [storageMode]);
+  }, [storageMode, limit]);
 
   const total = cards.length;
   const pct = done || total === 0 ? 100 : Math.round((idx / total) * 100);
@@ -39,22 +42,40 @@ export default function ReviewScreen({ storageMode, onGoHome }: ReviewScreenProp
   const rate = useCallback(
     async (rating: "again" | "hard" | "good" | "easy") => {
       const card = cards[idx];
+      if (!card) return;
       
-      if (rating === "good" || rating === "easy") setCorrect((c) => c + 1);
-      if (rating === "again") setWrong((w) => w + 1);
+      if (rating === "good" || rating === "easy") {
+        setCorrect((c) => c + 1);
+        setMistakeTracker(prev => ({ ...prev, [card.id]: 0 }));
+      }
 
-      // Save rating in background
+      if (rating === "again") {
+        setWrong((w) => w + 1);
+        const currentMistakes = (mistakeTracker[card.id] || 0) + 1;
+        setMistakeTracker(prev => ({ ...prev, [card.id]: currentMistakes }));
+
+        if (currentMistakes >= 3) {
+          onLoseHeart();
+          setMistakeTracker(prev => ({ ...prev, [card.id]: 0 }));
+        }
+
+        const updatedCards = [...cards];
+        const nextPos = Math.min(idx + 4, updatedCards.length);
+        updatedCards.splice(nextPos, 0, card);
+        setCards(updatedCards);
+      }
+
       const provider = getStorageProvider(storageMode);
       provider.submitReview(card.id, rating).catch(e => console.error("Failed to submit review", e));
 
-      if (idx + 1 >= total) {
+      if (idx + 1 >= cards.length) {
         setDone(true);
       } else {
         setIdx((i) => i + 1);
         setFlipped(false);
       }
     },
-    [idx, total, cards, storageMode]
+    [idx, cards, storageMode, mistakeTracker, onLoseHeart]
   );
 
   if (loading) {

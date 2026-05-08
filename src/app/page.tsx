@@ -22,15 +22,20 @@ function getCookie(name: string) {
 export default function App() {
   const [screen, setScreen] = useState<ScreenId>("home");
   const [xp, setXp] = useState(310);
-  const [hearts, setHearts] = useState(3);
+  const [dailyXp, setDailyXp] = useState(0);
+  const [hearts, setHearts] = useState(5);
+  const [lastHeartRefill, setLastHeartRefill] = useState<string>(new Date().toISOString());
   const [streakDays] = useState(12);
   const [displayInitial] = useState("A");
   const [lang, setLang] = useState<LangCode>("en");
   const [reviewLimit, setReviewLimit] = useState(20);
   const [newWordsLimit, setNewWordsLimit] = useState(10);
+  
+  const targetXp = (newWordsLimit * 10) + (reviewLimit * 5);
+
   const [currentAyah, setCurrentAyah] = useState("1:1");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [storageMode, setStorageMode] = useState<"guest" | "cloud">("cloud");
 
   // XP popup
@@ -43,19 +48,38 @@ export default function App() {
 
   const awardXP = useCallback((amount: number, msg: string) => {
     setXp((prev) => prev + amount);
+    setDailyXp((prev) => {
+      const next = prev + amount;
+      const provider = getStorageProvider(storageMode);
+      provider.updateDailyGoal(next, next >= targetXp);
+      return next;
+    });
     setXpMsg(msg);
     setShowXpPop(true);
     setTimeout(() => setShowXpPop(false), 900);
-  }, []);
+  }, [storageMode, targetXp]);
+
+  const loseHeart = useCallback(async () => {
+    setHearts((prev) => {
+      const next = Math.max(0, prev - 1);
+      const provider = getStorageProvider(storageMode);
+      provider.saveHearts(next, lastHeartRefill);
+      return next;
+    });
+  }, [storageMode, lastHeartRefill]);
 
   const startLesson = useCallback((ayahKey?: string) => {
+    if (hearts <= 0) {
+      alert("You are out of hearts! ❤️ Wait for them to refill or practice old words in the Review tab to keep your momentum going.");
+      return;
+    }
     if (ayahKey) {
       setCurrentAyah(ayahKey);
       const provider = getStorageProvider(storageMode);
       provider.saveCurrentAyah(ayahKey);
     }
     setScreen("lesson");
-  }, [storageMode]);
+  }, [storageMode, hearts]);
 
   useEffect(() => {
     // If QF redirects here with ?code=...&state=..., bounce it to our API route
@@ -74,6 +98,33 @@ export default function App() {
     }
   }, []);
 
+  // Heart refill logic (1 every 4 hours)
+  useEffect(() => {
+    const checkRefill = () => {
+      if (hearts >= 5) return;
+      
+      const now = new Date();
+      const last = new Date(lastHeartRefill);
+      const diffMs = now.getTime() - last.getTime();
+      const hoursPassed = diffMs / (1000 * 60 * 60);
+      
+      if (hoursPassed >= 4) {
+        const heartsToAdd = Math.floor(hoursPassed / 4);
+        const newCount = Math.min(5, hearts + heartsToAdd);
+        const newRefillDate = new Date(last.getTime() + (heartsToAdd * 4 * 60 * 60 * 1000)).toISOString();
+        
+        setHearts(newCount);
+        setLastHeartRefill(newRefillDate);
+        const provider = getStorageProvider(storageMode);
+        provider.saveHearts(newCount, newRefillDate);
+      }
+    };
+
+    const interval = setInterval(checkRefill, 60000); // Check every minute
+    checkRefill(); // Initial check
+    return () => clearInterval(interval);
+  }, [hearts, lastHeartRefill, storageMode]);
+
   useEffect(() => {
     async function loadUser() {
       if (isLoggedIn === null) return;
@@ -86,6 +137,13 @@ export default function App() {
 
       const ayah = await provider.getCurrentAyah();
       setCurrentAyah(ayah);
+
+      const h = await provider.getHearts();
+      setHearts(h.count);
+      setLastHeartRefill(h.lastRefill);
+
+      const goal = await provider.getDailyGoal();
+      setDailyXp(goal.xp_earned);
     }
     loadUser();
   }, [isLoggedIn, storageMode]);
@@ -117,7 +175,7 @@ export default function App() {
   if (!isLoggedIn && storageMode !== "guest") {
     return (
       <div className="flex justify-center min-h-screen p-4 bg-[#F0F4F8]">
-        <div className="app-shell relative bg-white">
+        <div className={`app-shell relative bg-white ${theme}`}>
           <OnboardingScreen 
             onLogin={() => { window.location.href = "/api/auth/login"; }} 
             onGuest={() => setStorageMode("guest")}
@@ -129,7 +187,7 @@ export default function App() {
 
   return (
     <div className="flex justify-center min-h-screen p-4">
-      <div className="app-shell relative">
+      <div className={`app-shell relative ${theme}`}>
         <TopBar
           xp={xp}
           hearts={hearts}
@@ -150,6 +208,9 @@ export default function App() {
         {screen === "home" && (
           <HomeScreen
             xp={xp}
+            dailyXp={dailyXp}
+            targetXp={targetXp}
+            streak={streakDays}
             currentAyah={currentAyah}
             storageMode={storageMode}
             onStartReview={() => navigate("quiz")}
@@ -165,12 +226,18 @@ export default function App() {
             storageMode={storageMode}
             onGoHome={() => navigate("home")}
             onAwardXP={awardXP}
+            onLoseHeart={loseHeart}
             onNextAyah={startLesson}
           />
         )}
 
         {screen === "quiz" && (
-          <ReviewScreen storageMode={storageMode} onGoHome={() => navigate("home")} />
+          <ReviewScreen 
+            storageMode={storageMode} 
+            onGoHome={() => navigate("home")} 
+            onLoseHeart={loseHeart}
+            limit={reviewLimit}
+          />
         )}
 
         {screen === "settings" && (

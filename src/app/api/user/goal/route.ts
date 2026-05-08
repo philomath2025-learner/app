@@ -7,12 +7,11 @@ export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("sb_custom_token")?.value;
-    if (!token) return NextResponse.json({ xp: 0, currentAyah: "1:1" }, { status: 401 });
+    if (!token) return NextResponse.json({ xp_earned: 0, completed: false }, { status: 401 });
 
     const payload = decodeJwt(token);
     const authId = payload?.sub;
-
-    if (!authId) return NextResponse.json({ xp: 0, currentAyah: "1:1" }, { status: 401 });
+    if (!authId) return NextResponse.json({ xp_earned: 0, completed: false }, { status: 401 });
 
     const { data: profile } = await supabaseAdmin
       .from("user_profiles")
@@ -20,25 +19,23 @@ export async function GET(request: NextRequest) {
       .eq("auth_id", authId)
       .single();
 
-    if (!profile) return NextResponse.json({ xp: 0, currentAyah: "1:1" }, { status: 401 });
+    if (!profile) return NextResponse.json({ xp_earned: 0, completed: false }, { status: 401 });
 
-    const { data: progress } = await supabaseAdmin
-      .from("user_progress")
-      .select("xp, current_ayah, hearts, hearts_refill_at")
+    const today = new Date().toISOString().split('T')[0];
+
+    const { data: goal } = await supabaseAdmin
+      .from("daily_goals")
+      .select("xp_earned, completed")
       .eq("user_id", profile.id)
+      .eq("goal_date", today)
       .single();
 
-    if (!progress) return NextResponse.json({ xp: 0, currentAyah: "1:1", hearts: 5 });
+    if (!goal) return NextResponse.json({ xp_earned: 0, completed: false });
 
-    return NextResponse.json({ 
-      xp: progress.xp, 
-      currentAyah: progress.current_ayah,
-      hearts: progress.hearts,
-      hearts_refill_at: progress.hearts_refill_at
-    });
+    return NextResponse.json({ xp_earned: goal.xp_earned, completed: goal.completed });
   } catch (error) {
-    console.error("User progress fetch error:", error);
-    return NextResponse.json({ xp: 0, currentAyah: "1:1", hearts: 5 }, { status: 500 });
+    console.error("Daily goal fetch error:", error);
+    return NextResponse.json({ xp_earned: 0, completed: false }, { status: 500 });
   }
 }
 
@@ -50,7 +47,6 @@ export async function POST(request: NextRequest) {
 
     const payload = decodeJwt(token);
     const authId = payload?.sub;
-
     if (!authId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { data: profile } = await supabaseAdmin
@@ -62,23 +58,24 @@ export async function POST(request: NextRequest) {
     if (!profile) return NextResponse.json({ error: "Unauthorized profile" }, { status: 401 });
 
     const body = await request.json();
-    const { currentAyah, hearts, hearts_refill_at } = body;
+    const { xp_earned, completed } = body;
+    const today = new Date().toISOString().split('T')[0];
 
-    const updateData: any = {};
-    if (currentAyah) updateData.current_ayah = currentAyah;
-    if (hearts !== undefined) updateData.hearts = hearts;
-    if (hearts_refill_at) updateData.hearts_refill_at = hearts_refill_at;
+    // Upsert daily goal
+    const { error } = await supabaseAdmin
+      .from("daily_goals")
+      .upsert({ 
+        user_id: profile.id, 
+        goal_date: today, 
+        xp_earned: xp_earned, 
+        completed: !!completed 
+      }, { onConflict: 'user_id, goal_date' });
 
-    if (Object.keys(updateData).length > 0) {
-      await supabaseAdmin
-        .from("user_progress")
-        .update(updateData)
-        .eq("user_id", profile.id);
-    }
+    if (error) throw error;
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("User progress update error:", error);
+    console.error("Daily goal update error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

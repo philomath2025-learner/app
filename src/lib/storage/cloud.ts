@@ -56,6 +56,32 @@ export class CloudStorageProvider implements StorageProvider {
     }
   }
 
+  async getHearts(): Promise<{ count: number; lastRefill: string }> {
+    try {
+      const res = await fetch("/api/user/progress");
+      if (!res.ok) return { count: 5, lastRefill: new Date().toISOString() };
+      const data = await res.json();
+      return {
+        count: data.hearts !== undefined ? data.hearts : 5,
+        lastRefill: data.hearts_refill_at || new Date().toISOString()
+      };
+    } catch (err) {
+      return { count: 5, lastRefill: new Date().toISOString() };
+    }
+  }
+
+  async saveHearts(count: number, lastRefill: string): Promise<void> {
+    try {
+      await fetch("/api/user/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hearts: count, hearts_refill_at: lastRefill }),
+      });
+    } catch (err) {
+      console.error("Failed to save hearts to cloud:", err);
+    }
+  }
+
   async getCurrentAyah(): Promise<string> {
     try {
       const res = await fetch("/api/user/progress");
@@ -76,6 +102,29 @@ export class CloudStorageProvider implements StorageProvider {
       });
     } catch (err) {
       console.error("Failed to save current ayah to cloud:", err);
+    }
+  }
+
+  async getDailyGoal(): Promise<{ xp_earned: number; completed: boolean }> {
+    try {
+      const res = await fetch("/api/user/goal");
+      if (!res.ok) return { xp_earned: 0, completed: false };
+      const data = await res.json();
+      return { xp_earned: data.xp_earned || 0, completed: !!data.completed };
+    } catch (err) {
+      return { xp_earned: 0, completed: false };
+    }
+  }
+
+  async updateDailyGoal(xp: number, completed: boolean = false): Promise<void> {
+    try {
+      await fetch("/api/user/goal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ xp_earned: xp, completed }),
+      });
+    } catch (err) {
+      console.error("Failed to update daily goal in cloud:", err);
     }
   }
 
