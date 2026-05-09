@@ -39,6 +39,8 @@ interface LessonData {
 interface LessonScreenProps {
   ayahKey: string;
   lang: string;
+  translationId: number | null;
+  tafsirId: number | null;
   theme: "light" | "dark";
   storageMode: "guest" | "cloud";
   onGoHome: () => void;
@@ -59,7 +61,7 @@ function getShortTafsir(text: string) {
 
 
 
-export default function LessonScreen({ ayahKey, lang, theme, storageMode, onGoHome, onAwardXP, onLoseHeart, onNextAyah }: LessonScreenProps) {
+export default function LessonScreen({ ayahKey, lang, translationId, tafsirId, theme, storageMode, onGoHome, onAwardXP, onLoseHeart, onNextAyah }: LessonScreenProps) {
   const [data, setData] = useState<LessonData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +85,10 @@ export default function LessonScreen({ ayahKey, lang, theme, storageMode, onGoHo
     
     const fetchAyahAndDedup = async () => {
       try {
-        const r = await fetch(`/api/lesson/${ayahKey}?lang=${lang}`);
+        const params = new URLSearchParams({ lang });
+        if (translationId) params.set("translationId", String(translationId));
+        if (tafsirId) params.set("tafsirId", String(tafsirId));
+        const r = await fetch(`/api/lesson/${ayahKey}?${params}`);
         if (!r.ok) throw new Error(`API error: ${r.status}`);
         const rawData = await r.json();
 

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { decodeJwt } from "jose";
 import { supabaseAdmin } from "@/lib/supabase";
-import { fetchVerseByKey, TRANSLATION_IDS } from "@/lib/quran-api";
+import { fetchVerseByKey } from "@/lib/quran-api";
+import { getDefaultTranslationId } from "@/lib/qf-languages";
 
 export async function GET(request: NextRequest) {
   try {
@@ -63,7 +64,8 @@ export async function GET(request: NextRequest) {
         let ayahWords: { arabic: string; translation: string }[] = [];
 
         try {
-          const verse = await fetchVerseByKey(entry.first_ayah_key, { language: "en", translationId: TRANSLATION_IDS.en });
+          const translationId = await getDefaultTranslationId("en");
+          const verse = await fetchVerseByKey(entry.first_ayah_key, { language: "en", translationId });
           
           // Build word-by-word data (only actual words, not end markers)
           const actualWords = verse.words.filter((w: any) => w.char_type_name === "word");

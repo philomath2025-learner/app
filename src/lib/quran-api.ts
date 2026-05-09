@@ -3,6 +3,8 @@
  *
  * Base: https://api.quran.com/api/v4
  * Docs: https://api-docs.quran.foundation/docs/content_apis_versioned/4.0.0/content-apis/
+ *
+ * All translation/tafsir IDs are resolved dynamically via qf-languages.ts.
  */
 
 const QF_CONTENT_API = "https://api.quran.com/api/v4";
@@ -56,12 +58,6 @@ export interface QFChapter {
   pages: number[];
   translated_name: { language_name: string; name: string };
 }
-
-// ── Translation edition IDs ──
-export const TRANSLATION_IDS = {
-  en: 131,   // Dr. Mustafa Khattab (The Clear Quran)
-  ta: 229,   // Tamil translation
-} as const;
 
 // ── API Functions ──
 
@@ -122,8 +118,8 @@ export async function fetchVerseByKey(
 }
 
 /** Fetch chapter metadata */
-export async function fetchChapter(chapterId: number): Promise<QFChapter> {
-  const res = await fetch(`${QF_CONTENT_API}/chapters/${chapterId}?language=en`, {
+export async function fetchChapter(chapterId: number, language: string = "en"): Promise<QFChapter> {
+  const res = await fetch(`${QF_CONTENT_API}/chapters/${chapterId}?language=${language}`, {
     next: { revalidate: 86400 * 30 }, // Cache for 30 days
   });
 
@@ -133,8 +129,8 @@ export async function fetchChapter(chapterId: number): Promise<QFChapter> {
 }
 
 /** Fetch all chapters */
-export async function fetchAllChapters(): Promise<QFChapter[]> {
-  const res = await fetch(`${QF_CONTENT_API}/chapters?language=en`, {
+export async function fetchAllChapters(language: string = "en"): Promise<QFChapter[]> {
+  const res = await fetch(`${QF_CONTENT_API}/chapters?language=${language}`, {
     next: { revalidate: 86400 * 30 },
   });
 
@@ -146,7 +142,7 @@ export async function fetchAllChapters(): Promise<QFChapter[]> {
 /** Fetch tafsir for a verse */
 export async function fetchTafsir(
   verseKey: string,
-  tafsirId: number = 169 // Ibn Kathir (English)
+  tafsirId: number = 169 // Default: Ibn Kathir (English)
 ): Promise<{ text: string }> {
   const res = await fetch(`${QF_CONTENT_API}/tafsirs/${tafsirId}/by_ayah/${verseKey}`, {
     next: { revalidate: 86400 },

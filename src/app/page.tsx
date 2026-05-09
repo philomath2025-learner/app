@@ -28,6 +28,8 @@ export default function App() {
   const [streakDays] = useState(12);
   const [displayInitial] = useState("A");
   const [lang, setLang] = useState<LangCode>("en");
+  const [translationId, setTranslationId] = useState<number | null>(131);  // The Clear Quran (English)
+  const [tafsirId, setTafsirId] = useState<number | null>(169);           // Ibn Kathir (English)
   const [reviewLimit, setReviewLimit] = useState(20);
   const [newWordsLimit, setNewWordsLimit] = useState(10);
   
@@ -45,6 +47,28 @@ export default function App() {
   function navigate(id: ScreenId) {
     setScreen(id);
   }
+
+  // Language handler — resolves default translation/tafsir IDs dynamically
+  const handleSetLang = useCallback((code: LangCode, newTranslationId?: number, newTafsirId?: number) => {
+    setLang(code);
+    if (newTranslationId !== undefined) {
+      setTranslationId(newTranslationId);
+    } else {
+      // Resolve default IDs from server
+      fetch(`/api/languages?translations=${code}`)
+        .then((r) => r.json())
+        .then((d) => {
+          const translations = d.translations || [];
+          if (translations.length > 0) {
+            setTranslationId(translations[0].id);
+          }
+        })
+        .catch(() => setTranslationId(131)); // Fallback to English
+    }
+    if (newTafsirId !== undefined) {
+      setTafsirId(newTafsirId);
+    }
+  }, []);
 
   const awardXP = useCallback((amount: number, msg: string) => {
     setXp((prev) => prev + amount);
@@ -224,6 +248,8 @@ export default function App() {
           <LessonScreen
             ayahKey={currentAyah}
             lang={lang}
+            translationId={translationId}
+            tafsirId={tafsirId}
             theme={theme}
             storageMode={storageMode}
             onGoHome={() => navigate("home")}
@@ -246,10 +272,12 @@ export default function App() {
         {screen === "settings" && (
           <SettingsScreen
             lang={lang}
+            translationId={translationId}
+            tafsirId={tafsirId}
             theme={theme}
             reviewLimit={reviewLimit}
             newWordsLimit={newWordsLimit}
-            onSetLang={setLang}
+            onSetLang={handleSetLang}
             onSetTheme={setTheme}
             onSetReviewLimit={setReviewLimit}
             onSetNewWordsLimit={setNewWordsLimit}

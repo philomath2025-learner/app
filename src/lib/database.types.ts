@@ -14,7 +14,9 @@ export interface Database {
           auth_id: string;
           display_name: string;
           display_initial: string;
-          language: "en" | "ta";
+          language: string;
+          preferred_translation_id: number | null;
+          preferred_tafsir_id: number | null;
           review_limit: number;
           new_words_limit: number;
           qf_access_token: string | null;
@@ -28,7 +30,9 @@ export interface Database {
           auth_id: string;
           display_name?: string;
           display_initial?: string;
-          language?: "en" | "ta";
+          language?: string;
+          preferred_translation_id?: number | null;
+          preferred_tafsir_id?: number | null;
           review_limit?: number;
           new_words_limit?: number;
           qf_access_token?: string | null;
@@ -42,7 +46,9 @@ export interface Database {
           auth_id?: string;
           display_name?: string;
           display_initial?: string;
-          language?: "en" | "ta";
+          language?: string;
+          preferred_translation_id?: number | null;
+          preferred_tafsir_id?: number | null;
           review_limit?: number;
           new_words_limit?: number;
           qf_access_token?: string | null;
@@ -155,6 +161,7 @@ export interface Database {
           meaning_cluster: string | null;
           translation_en: string | null;
           translation_ta: string | null;
+          translation_user_lang: string | null;
           lemma: string | null;
           frequency_root: number;
           srs_interval: number;
@@ -175,6 +182,7 @@ export interface Database {
           meaning_cluster?: string | null;
           translation_en?: string | null;
           translation_ta?: string | null;
+          translation_user_lang?: string | null;
           lemma?: string | null;
           frequency_root?: number;
           srs_interval?: number;
@@ -194,6 +202,7 @@ export interface Database {
           meaning_cluster?: string | null;
           translation_en?: string | null;
           translation_ta?: string | null;
+          translation_user_lang?: string | null;
           lemma?: string | null;
           frequency_root?: number;
           srs_interval?: number;

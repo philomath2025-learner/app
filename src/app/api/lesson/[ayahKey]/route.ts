@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchVerseByKey, fetchTafsir, fetchChapter, TRANSLATION_IDS } from "@/lib/quran-api";
+import { fetchVerseByKey, fetchTafsir, fetchChapter } from "@/lib/quran-api";
 import { fetchVerseMorphology, toDisplayMorphology } from "@/lib/mcp-client";
-import type { LangCode } from "@/lib/constants";
+import { getDefaultTranslationId, getDefaultTafsirId } from "@/lib/qf-languages";
 
 /**
  * GET /api/lesson/[ayahKey]
@@ -13,7 +13,10 @@ import type { LangCode } from "@/lib/constants";
  *   4. Ayah Audio                                            → QF Recitations API (7 = Alafasy)
  *   5. Next Ayah calculation                                 → QF Chapters API
  *
- * Query params: ?lang=en|ta
+ * Query params:
+ *   ?lang=en|ur|fr|...          — ISO language code (default: en)
+ *   ?translationId=131          — Override default translation edition
+ *   ?tafsirId=169               — Override default tafsir edition
  */
 export async function GET(
   request: NextRequest,
@@ -21,13 +24,24 @@ export async function GET(
 ) {
   try {
     const { ayahKey } = await params;
-    const lang = (request.nextUrl.searchParams.get("lang") || "en") as LangCode;
-    const translationId = TRANSLATION_IDS[lang] || TRANSLATION_IDS.en;
+    const lang = request.nextUrl.searchParams.get("lang") || "en";
+
+    // Resolve translation and tafsir IDs — use explicit override or dynamic default
+    const translationIdParam = request.nextUrl.searchParams.get("translationId");
+    const tafsirIdParam = request.nextUrl.searchParams.get("tafsirId");
+
+    const translationId = translationIdParam
+      ? Number(translationIdParam)
+      : await getDefaultTranslationId(lang);
+
+    const tafsirId = tafsirIdParam
+      ? Number(tafsirIdParam)
+      : await getDefaultTafsirId(lang);
 
     const chapterId = parseInt(ayahKey.split(":")[0]);
     const verseNum = parseInt(ayahKey.split(":")[1]);
 
-    // Fetch verse from QF Content API
+    // Fetch verse from QF Content API with language-aware word-by-word translations
     const verse = await fetchVerseByKey(ayahKey, { language: lang, translationId });
 
     // Count actual words (exclude end markers)
@@ -37,9 +51,9 @@ export async function GET(
     // Fetch morphology, tafsir, ayah audio, and chapter metadata in parallel
     const [morphMap, tafsirData, audioRes, chapter] = await Promise.all([
       fetchVerseMorphology(ayahKey, wordCount).catch(() => new Map()),
-      fetchTafsir(ayahKey, 169).catch(() => ({ text: "" })),
+      fetchTafsir(ayahKey, tafsirId).catch(() => ({ text: "" })),
       fetch(`https://api.quran.com/api/v4/recitations/7/by_ayah/${ayahKey}`).then(r => r.json()).catch(() => null),
-      fetchChapter(chapterId).catch(() => null),
+      fetchChapter(chapterId, lang).catch(() => null),
     ]);
 
     // Build word data with morphology

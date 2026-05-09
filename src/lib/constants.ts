@@ -24,24 +24,47 @@ export function getNextLevel(xp: number) {
 }
 
 // ── Languages ──
-export const LANGUAGES = {
-  en: {
-    code: "en",
-    label: "English",
-    flag: "🇬🇧",
-    mcpTranslationEdition: "en-abdel-haleem",
-    mcpTafsirEdition: "en-tafsir-ibn-kathir",
-  },
-  ta: {
-    code: "ta",
-    label: "தமிழ்",
-    flag: "🇮🇳",
-    mcpTranslationEdition: "ta-tamil",
-    mcpTafsirEdition: "en-tafsir-ibn-kathir",
-  },
-} as const;
 
-export type LangCode = keyof typeof LANGUAGES;
+/** Any QF-supported ISO language code */
+export type LangCode = string;
+
+/** Default language */
+export const DEFAULT_LANG: LangCode = "en";
+
+/**
+ * Popular languages for the quick-pick UI in Settings.
+ * The full list of 70+ languages is fetched dynamically from QF API.
+ */
+export const POPULAR_LANGUAGES: {
+  code: LangCode;
+  label: string;
+  nativeLabel: string;
+  flag: string;
+  direction: "ltr" | "rtl";
+}[] = [
+  { code: "en", label: "English", nativeLabel: "English", flag: "🇬🇧", direction: "ltr" },
+  { code: "ta", label: "Tamil", nativeLabel: "தமிழ்", flag: "🇮🇳", direction: "ltr" },
+  { code: "ur", label: "Urdu", nativeLabel: "اردو", flag: "🇵🇰", direction: "rtl" },
+  { code: "bn", label: "Bengali", nativeLabel: "বাংলা", flag: "🇧🇩", direction: "ltr" },
+  { code: "fr", label: "French", nativeLabel: "Français", flag: "🇫🇷", direction: "ltr" },
+  { code: "tr", label: "Turkish", nativeLabel: "Türkçe", flag: "🇹🇷", direction: "ltr" },
+  { code: "id", label: "Indonesian", nativeLabel: "Bahasa Indonesia", flag: "🇮🇩", direction: "ltr" },
+  { code: "ms", label: "Malay", nativeLabel: "Bahasa Melayu", flag: "🇲🇾", direction: "ltr" },
+  { code: "ru", label: "Russian", nativeLabel: "Русский", flag: "🇷🇺", direction: "ltr" },
+  { code: "es", label: "Spanish", nativeLabel: "Español", flag: "🇪🇸", direction: "ltr" },
+  { code: "de", label: "German", nativeLabel: "Deutsch", flag: "🇩🇪", direction: "ltr" },
+  { code: "hi", label: "Hindi", nativeLabel: "हिन्दी", flag: "🇮🇳", direction: "ltr" },
+  { code: "ml", label: "Malayalam", nativeLabel: "മലയാളം", flag: "🇮🇳", direction: "ltr" },
+];
+
+/**
+ * @deprecated Use POPULAR_LANGUAGES and dynamic QF API instead.
+ * Kept for backward compatibility during migration.
+ */
+export const LANGUAGES: Record<string, { code: string; label: string; flag: string }> = {
+  en: { code: "en", label: "English", flag: "🇬🇧" },
+  ta: { code: "ta", label: "தமிழ்", flag: "🇮🇳" },
+};
 
 // ── OAuth2 Config ──
 export const QF_OAUTH = {

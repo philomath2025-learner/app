@@ -49,6 +49,9 @@ const UI_STRINGS: Record<string, string> = {
   showAnswer: "👁 Show Answer",
   howWell: "How well did you know this?",
   reviewComplete: "Review Complete!",
+  browseAllLanguages: "Browse All Languages",
+  searchLanguages: "Search languages…",
+  translationEdition: "Translation Edition",
 };
 
 /** UI strings — always English */
@@ -56,8 +59,8 @@ export function T(key: string): string {
   return UI_STRINGS[key] || key;
 }
 
-// Content string templates per language
-const CONTENT_STRINGS: Record<LangCode, Record<string, string>> = {
+// Content string templates — English default, with optional overrides
+const CONTENT_STRINGS: Record<string, Record<string, string>> = {
   en: {
     tafsirLabel: "Tafsir (Ibn Kathir)",
     morphologyLabel: "Morphology",
@@ -74,7 +77,7 @@ const CONTENT_STRINGS: Record<LangCode, Record<string, string>> = {
   },
 };
 
-/** Content strings — language-dependent */
+/** Content strings — language-dependent, falls back to English */
 export function C(key: string, lang: LangCode): string {
   return CONTENT_STRINGS[lang]?.[key] || CONTENT_STRINGS.en[key] || key;
 }
