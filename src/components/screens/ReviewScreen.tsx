@@ -7,12 +7,14 @@ import type { ReviewCard } from "@/lib/storage/interface";
 
 interface ReviewScreenProps {
   storageMode: "guest" | "cloud";
+  theme: "light" | "dark";
   onGoHome: () => void;
   onLoseHeart: () => void;
   limit: number;
 }
 
-export default function ReviewScreen({ storageMode, onGoHome, onLoseHeart, limit }: ReviewScreenProps) {
+export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart, limit }: ReviewScreenProps) {
+  const isDark = theme === "dark";
   const [cards, setCards] = useState<ReviewCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [idx, setIdx] = useState(0);
@@ -126,107 +128,146 @@ export default function ReviewScreen({ storageMode, onGoHome, onLoseHeart, limit
   const card = cards[idx];
 
   return (
-    <div className="flex-1 overflow-y-auto p-3.5">
-      {/* Progress bar */}
-      <div className="flex items-center gap-2 mb-3">
-        <div className="flex-1 h-[8px] bg-gray2 rounded-full overflow-hidden">
-          <div className="h-full bg-green rounded-full transition-all duration-300" style={{ width: `${pct}%` }} />
-        </div>
-        <span className="text-[11px] font-bold text-text-light">{idx + 1} / {total}</span>
-      </div>
-
-      {/* Flashcard */}
-      <div
-        onClick={flip}
-        className="cursor-pointer bg-white border-2 border-gray2 rounded-[var(--radius-card)] overflow-hidden mb-3 transition-all duration-300"
-        style={{ minHeight: "280px" }}
-      >
-        {!flipped ? (
-          /* Front */
-          <div className="p-5 text-center flex flex-col items-center justify-center min-h-[280px]">
-            <div className="text-[10px] font-bold text-text-light mb-4 uppercase">{T("recallMeaning")}</div>
-            <div className="text-[36px] font-amiri text-text mb-2">{card.arabic}</div>
-            <div className="text-[11px] text-text-light">{card.ayah}</div>
-            <div className="text-[10px] text-gray1 mt-1">{card.ref}</div>
-            <div className="text-[10px] text-gray1 mt-4 animate-pulse-load">{T("tapToReveal")}</div>
+    <div className={`flex-1 flex flex-col overflow-hidden h-full transition-colors duration-300 ${isDark ? 'bg-[#0B1121]' : ''}`}>
+      {/* Scrollable Main Area */}
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col">
+        {/* Progress bar */}
+        <div className="flex items-center gap-2 mb-4 shrink-0">
+          <div className={`flex-1 h-2.5 rounded-full overflow-hidden shadow-inner ${isDark ? 'bg-[#1E314A]' : 'bg-gray2'}`}>
+            <div className="h-full bg-green rounded-full transition-all duration-500 ease-out" style={{ width: `${pct}%` }} />
           </div>
-        ) : (
-          /* Back */
-          <div className="p-4 flex flex-col items-center min-h-[280px] animate-fade-in overflow-y-auto">
-            {/* Word + Meaning */}
-            <div className="text-[22px] font-amiri text-text mb-1">{card.arabic}</div>
-            <div className="text-[16px] font-black text-green-dark mb-2">{card.meaning}</div>
-            <span className="pill pill-review mb-3">{card.root}</span>
+          <span className={`text-[12px] font-black tabular-nums ${isDark ? 'text-[#50728D]' : 'text-text-light'}`}>{idx + 1} / {total}</span>
+        </div>
 
-            {/* Ayah Context — Arabic with highlighted word */}
-            {card.ayahWords.length > 0 && (
-              <div className="w-full bg-gray3 rounded-[var(--radius-sm)] p-3 mt-1 mb-2">
-                <div className="text-[9px] font-bold text-text-light uppercase mb-2 text-center">
-                  📖 Ayah {card.ref}
+        {/* Flashcard Container */}
+        <div
+          onClick={flip}
+          className={`flex-1 flex flex-col border-2 rounded-[32px] overflow-hidden shadow-sm transition-all duration-300 relative ${isDark ? 'bg-[#152336] border-[#1E314A]' : 'bg-white border-gray2'} ${!flipped ? 'hover:border-blue/30' : ''}`}
+          style={{ minHeight: "380px" }}
+        >
+          {!flipped ? (
+            /* Front Side */
+            <div className="flex-1 flex flex-col p-6 overflow-y-auto custom-scrollbar">
+              <div className={`text-[11px] font-black mb-6 uppercase tracking-widest text-center shrink-0 ${isDark ? 'text-[#50728D]' : 'text-text-light'}`}>
+                {T("recallMeaning")}
+              </div>
+              
+              <div className="flex-1 flex flex-col items-center justify-center py-4">
+                <div className={`px-6 py-4 rounded-2xl border-2 mb-8 shadow-sm transition-colors ${isDark ? 'bg-[#101826] border-[#284155]' : 'bg-blue-light/30 border-blue/10'}`}>
+                  <div className={`text-[10px] font-black uppercase tracking-widest mb-1 text-center ${isDark ? 'text-[#60E0C1]' : 'text-blue-dark'}`}>Recall Meaning</div>
+                  <div className={`text-[48px] font-naskh leading-none ${isDark ? 'text-white' : 'text-text'}`}>{card.arabic}</div>
                 </div>
 
-                {/* Word-by-word translation with target highlighted */}
-                <div className="flex flex-wrap gap-1 justify-center mb-2">
-                  {card.ayahWords.map((w, i) => {
-                    const isTarget = w.arabic === card.arabic || 
-                      w.arabic.replace(/[\u064B-\u065F\u0670]/g, "") === card.arabic.replace(/[\u064B-\u065F\u0670]/g, "");
-                    return (
-                      <div key={i} className={`text-center px-1.5 py-1 rounded ${isTarget ? "bg-green-light" : ""}`}>
-                        <div className={`text-[12px] font-amiri ${isTarget ? "text-green-dark font-bold" : "text-text"}`}>{w.arabic}</div>
-                        <div className={`text-[8px] ${isTarget ? "text-green-dark font-bold" : "text-text-light"}`}>{w.translation}</div>
-                      </div>
-                    );
-                  })}
+                <div className={`text-[14px] mb-3 font-bold tracking-tight uppercase ${isDark ? 'text-[#50728D]' : 'text-gray1'}`}>{card.ref}</div>
+                
+                <div className="w-full text-center px-2" dir="rtl">
+                  <div className={`text-[32px] sm:text-[38px] font-naskh leading-[1.6] opacity-90 ${isDark ? 'text-white' : 'text-text'}`}>
+                    {card.ayah}
+                  </div>
                 </div>
+              </div>
 
-                {/* Full English translation */}
-                {card.ayahTranslation && (
-                  <div className="border-t border-gray2 pt-2 mt-1">
-                    <div className="text-[11px] text-text leading-relaxed italic text-center">
+              <div className={`text-[11px] font-bold text-center mt-auto py-2 animate-pulse uppercase tracking-wider ${isDark ? 'text-[#50728D]' : 'text-gray1'}`}>
+                {T("tapToReveal")}
+              </div>
+            </div>
+          ) : (
+            /* Back Side */
+            <div className="flex-1 flex flex-col p-6 overflow-y-auto custom-scrollbar animate-fade-in">
+              <div className="flex flex-col items-center mb-6 shrink-0">
+                <div className={`text-[48px] font-naskh leading-tight mb-2 ${isDark ? 'text-white' : 'text-text'}`}>{card.arabic}</div>
+                <div className={`text-[24px] font-black mb-3 px-4 py-1 rounded-xl transition-colors ${isDark ? 'bg-[#202E45] text-[#60E0C1]' : 'bg-green-light/50 text-green-dark'}`}>
+                  {card.meaning}
+                </div>
+                <span className={`px-4 py-1.5 rounded-full text-[12px] font-black uppercase tracking-wider transition-colors ${isDark ? 'bg-[#101826] text-[#A1B2C3]' : 'bg-blue-light text-blue-dark'}`}>
+                  Root: {card.root}
+                </span>
+              </div>
+
+              {/* Ayah Context */}
+              {card.ayahWords.length > 0 ? (
+                <div className={`w-full rounded-[24px] p-5 border mb-4 transition-colors ${isDark ? 'bg-[#101826] border-[#1E314A]' : 'bg-gray3/80 border-gray2/50'}`}>
+                  <div className={`flex justify-between items-center mb-4 border-b pb-3 ${isDark ? 'border-[#1E314A]' : 'border-gray2/30'}`}>
+                    <div className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-[#50728D]' : 'text-text-light'}`}>Contextual Usage</div>
+                    <div className={`text-[10px] font-black px-2 py-0.5 rounded ${isDark ? 'bg-[#202E45] text-[#60E0C1]' : 'bg-blue-light text-blue-dark'}`}>{card.ref}</div>
+                  </div>
+
+                  {/* Word-by-word with highlight */}
+                  <div className="flex flex-wrap gap-2 justify-center mb-6" dir="rtl">
+                    {card.ayahWords.map((w, i) => {
+                      const isTarget = w.arabic === card.arabic || 
+                        w.arabic.replace(/[\u064B-\u065F\u0670]/g, "") === card.arabic.replace(/[\u064B-\u065F\u0670]/g, "");
+                      return (
+                        <div key={i} className={`text-center px-2 py-1.5 rounded-xl transition-all ${isTarget ? (isDark ? "bg-[#202E45] shadow-lg border-2 border-[#60E0C1]/30 scale-110 z-10" : "bg-white shadow-md border-2 border-green/30 scale-110 z-10") : "opacity-60"}`}>
+                          <div className={`text-[18px] font-naskh ${isTarget ? (isDark ? "text-[#60E0C1] font-bold" : "text-green-dark font-bold") : (isDark ? "text-white" : "text-text")}`}>{w.arabic}</div>
+                          <div className={`text-[10px] font-bold ${isTarget ? (isDark ? "text-[#60E0C1]" : "text-green-dark") : (isDark ? "text-[#50728D]" : "text-text-light")}`}>{w.translation}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Semantic Translation */}
+                  {card.ayahTranslation && (
+                    <div className={`p-4 rounded-xl italic text-[14px] leading-relaxed text-center border transition-colors ${isDark ? 'bg-[#152336] text-[#A1B2C3] border-[#1E314A]' : 'bg-white/50 text-text border-gray2/30'}`}>
                       "{card.ayahTranslation}"
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </div>
+              ) : (
+                 /* Fallback for simple card */
+                 card.ayah && (
+                   <div className={`w-full rounded-[24px] p-6 border mb-4 transition-colors ${isDark ? 'bg-[#101826] border-[#1E314A]' : 'bg-gray3/80 border-gray2/50'}`}>
+                     <div className={`text-[24px] font-naskh leading-relaxed text-right mb-4 ${isDark ? 'text-white' : 'text-text'}`} dir="rtl">
+                       {card.ayah}
+                     </div>
+                     <div className={`text-[12px] font-bold text-center border-t pt-3 italic transition-colors ${isDark ? 'text-[#50728D] border-[#1E314A]' : 'text-text-light border-gray2/30'}`}>
+                       "{card.ayahTranslation || 'No translation available'}"
+                     </div>
+                   </div>
+                 )
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
-            {/* Fallback if no ayah words available */}
-            {card.ayahWords.length === 0 && card.ayah && (
-              <div className="w-full bg-gray3 rounded-[var(--radius-sm)] p-2.5 mt-1">
-                <div className="text-[14px] font-amiri text-text text-right" dir="rtl">{card.ayah}</div>
-                <div className="text-[10px] text-gray1 mt-1 text-center">{card.ref}</div>
-              </div>
-            )}
+      {/* Fixed Footer Buttons */}
+      <div className={`p-4 border-t-2 transition-colors duration-300 z-20 ${isDark ? 'bg-[#0B1121] border-[#1E314A]' : 'bg-white border-gray2 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]'}`}>
+        {!flipped ? (
+          <button 
+            onClick={flip} 
+            className="w-full bg-green hover:bg-green-dark text-white rounded-2xl py-4 px-6 text-[16px] font-black uppercase tracking-widest border-b-4 border-green-dark shadow-lg active:translate-y-1 active:border-b-0 transition-all"
+          >
+            {T("showAnswer")}
+          </button>
+        ) : (
+          <div className="animate-fade-in">
+            <div className={`text-center text-[12px] font-black mb-4 uppercase tracking-widest flex items-center justify-center gap-2 ${isDark ? 'text-[#50728D]' : 'text-text-light'}`}>
+              <span className={`h-px w-8 ${isDark ? 'bg-[#1E314A]' : 'bg-gray2'}`}></span>
+              {T("howWell")}
+              <span className={`h-px w-8 ${isDark ? 'bg-[#1E314A]' : 'bg-gray2'}`}></span>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { key: "again" as const, emoji: "🔁", label: T("again"), color: "bg-red border-red-900 shadow-[0_4px_0_#991B1B]", interval: "< 1m" },
+                { key: "hard" as const, emoji: "😓", label: T("hard"), color: "bg-orange border-orange-900 shadow-[0_4px_0_#9A3412]", interval: "10m" },
+                { key: "good" as const, emoji: "✓", label: T("good"), color: "bg-green border-green-900 shadow-[0_4px_0_#166534]", interval: "1d" },
+                { key: "easy" as const, emoji: "★", label: T("easy"), color: "bg-blue border-blue-900 shadow-[0_4px_0_#075985]", interval: "4d" },
+              ].map((btn) => (
+                <button
+                  key={btn.key}
+                  onClick={() => rate(btn.key)}
+                  className={`flex flex-col items-center justify-center ${btn.color} text-white rounded-2xl pt-2.5 pb-2 px-1 border-b-4 active:border-b-0 active:translate-y-1 transition-all`}
+                >
+                  <div className="text-[20px] mb-0.5 leading-none">{btn.emoji}</div>
+                  <div className="text-[10px] font-black uppercase tracking-tight">{btn.label}</div>
+                  <div className="text-[9px] font-bold opacity-80 mt-0.5">{btn.interval}</div>
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
-
-      {/* Show Answer / Confidence buttons */}
-      {!flipped ? (
-        <button onClick={flip} className="cta-btn">{T("showAnswer")}</button>
-      ) : (
-        <>
-          <div className="text-center text-[11px] font-bold text-text-light mb-2">{T("howWell")}</div>
-          <div className="grid grid-cols-4 gap-1.5">
-            {[
-              { key: "again" as const, emoji: "🔁", label: T("again"), color: "bg-red text-white", interval: "< 1 min" },
-              { key: "hard" as const, emoji: "😓", label: T("hard"), color: "bg-orange text-white", interval: "~10 min" },
-              { key: "good" as const, emoji: "✓", label: T("good"), color: "bg-green text-white", interval: "1 day" },
-              { key: "easy" as const, emoji: "★", label: T("easy"), color: "bg-blue text-white", interval: "4 days" },
-            ].map((btn) => (
-              <button
-                key={btn.key}
-                onClick={() => rate(btn.key)}
-                className={`${btn.color} rounded-[var(--radius-sm)] py-2.5 px-1 text-center cursor-pointer border-none font-['DM_Sans'] transition-transform active:scale-95`}
-              >
-                <div className="text-[16px] mb-0.5">{btn.emoji}</div>
-                <div className="text-[11px] font-extrabold">{btn.label}</div>
-                <div className="text-[8px] opacity-70 mt-0.5">{btn.interval}</div>
-              </button>
-            ))}
-          </div>
-        </>
-      )}
     </div>
   );
 }

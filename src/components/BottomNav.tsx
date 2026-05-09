@@ -4,12 +4,14 @@ import { NAV_ITEMS, type ScreenId } from "@/lib/constants";
 
 interface BottomNavProps {
   activeScreen: ScreenId;
+  theme: "light" | "dark";
   onNavigate: (id: ScreenId) => void;
 }
 
-export default function BottomNav({ activeScreen, onNavigate }: BottomNavProps) {
+export default function BottomNav({ activeScreen, theme, onNavigate }: BottomNavProps) {
+  const isDark = theme === "dark";
   return (
-    <div className="flex border-t-2 border-gray2 bg-white">
+    <div className={`flex border-t-2 transition-colors duration-300 ${isDark ? 'bg-[#0B1121] border-[#1E314A]' : 'bg-white border-gray2'}`}>
       {NAV_ITEMS.map((item) => {
         const isActive = activeScreen === item.id;
         return (

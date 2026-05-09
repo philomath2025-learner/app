@@ -175,7 +175,7 @@ export default function App() {
   if (!isLoggedIn && storageMode !== "guest") {
     return (
       <div className="flex justify-center min-h-screen p-4 bg-[#F0F4F8]">
-        <div className={`app-shell relative bg-white ${theme}`}>
+        <div className="app-shell relative bg-white">
           <OnboardingScreen 
             onLogin={() => { window.location.href = "/api/auth/login"; }} 
             onGuest={() => setStorageMode("guest")}
@@ -187,13 +187,14 @@ export default function App() {
 
   return (
     <div className="flex justify-center min-h-screen p-4">
-      <div className={`app-shell relative ${theme}`}>
+      <div className="app-shell relative">
         <TopBar
           xp={xp}
           hearts={hearts}
           streakDays={streakDays}
           juzLabel="Juz 1 · Al-Fatiha"
           displayInitial={displayInitial}
+          theme={theme}
           onProfileClick={() => navigate("profile")}
         />
 
@@ -213,6 +214,7 @@ export default function App() {
             streak={streakDays}
             currentAyah={currentAyah}
             storageMode={storageMode}
+            theme={theme}
             onStartReview={() => navigate("quiz")}
             onStartLesson={startLesson}
           />
@@ -237,6 +239,7 @@ export default function App() {
             onGoHome={() => navigate("home")} 
             onLoseHeart={loseHeart}
             limit={reviewLimit}
+            theme={theme}
           />
         )}
 
@@ -262,6 +265,7 @@ export default function App() {
           <JuzMapScreen
             currentAyah={currentAyah}
             storageMode={storageMode}
+            theme={theme}
             onNavigate={navigate}
           />
         )}
@@ -284,7 +288,7 @@ export default function App() {
           </div>
         )}
 
-        <BottomNav activeScreen={screen} onNavigate={navigate} />
+        <BottomNav activeScreen={screen} onNavigate={navigate} theme={theme} />
       </div>
     </div>
   );

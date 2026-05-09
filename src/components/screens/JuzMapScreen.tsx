@@ -6,6 +6,7 @@ import { getStorageProvider } from "@/lib/storage";
 interface JuzMapScreenProps {
   currentAyah: string;
   storageMode: "guest" | "cloud";
+  theme: "light" | "dark";
   onNavigate: (screenId: "quiz" | "home" | "lesson") => void;
 }
 
@@ -16,7 +17,8 @@ const SURAHS = [
   { id: 3, name: "Ali 'Imran", nameAr: "Ali 'Imran", verses: 200, start: 294, totalRoots: 108, desc: "The Family of Imran" },
 ];
 
-export default function JuzMapScreen({ currentAyah, storageMode, onNavigate }: JuzMapScreenProps) {
+export default function JuzMapScreen({ currentAyah, storageMode, theme, onNavigate }: JuzMapScreenProps) {
+  const isDark = theme === "dark";
   const [currentSurahId, currentVerse] = currentAyah.split(":").map(Number);
   const [expandedSurahId, setExpandedSurahId] = useState<number | null>(currentSurahId);
   const [loading, setLoading] = useState(true);
@@ -44,14 +46,14 @@ export default function JuzMapScreen({ currentAyah, storageMode, onNavigate }: J
   }, [currentSurahId, currentVerse]);
 
   return (
-    <div className="flex-1 bg-[#F0F4F8] overflow-y-auto font-['DM_Sans'] pb-20">
+    <div className={`flex-1 overflow-y-auto font-['DM_Sans'] pb-20 transition-colors duration-300 ${isDark ? 'bg-[#0B1121]' : 'bg-[#F0F4F8]'}`}>
       {/* 1. Top Stats Row */}
       <div className="grid grid-cols-5 gap-1.5 p-3 pb-2">
-        <StatBox label="STUDIED" value={stats.studied} colorClass="text-green" bgColor="bg-green" />
-        <StatBox label="HAS NEW" value={stats.hasNew} colorClass="text-teal" bgColor="bg-teal" />
-        <StatBox label="CURRENT" value={stats.current} colorClass="text-gold-dark" bgColor="bg-gold" />
-        <StatBox label="NEXT" value={stats.upcoming} colorClass="text-[#CE8200]" bgColor="bg-orange-light" />
-        <StatBox label="LOCKED" value={stats.locked} colorClass="text-gray1" bgColor="bg-gray2" />
+        <StatBox label="STUDIED" value={stats.studied} colorClass={isDark ? "text-green" : "text-green"} bgColor="bg-green" isDark={isDark} />
+        <StatBox label="HAS NEW" value={stats.hasNew} colorClass={isDark ? "text-teal" : "text-teal"} bgColor="bg-teal" isDark={isDark} />
+        <StatBox label="CURRENT" value={stats.current} colorClass={isDark ? "text-gold" : "text-gold-dark"} bgColor="bg-gold" isDark={isDark} />
+        <StatBox label="NEXT" value={stats.upcoming} colorClass={isDark ? "text-orange" : "text-[#CE8200]"} bgColor="bg-orange-light" isDark={isDark} />
+        <StatBox label="LOCKED" value={stats.locked} colorClass={isDark ? "text-[#50728D]" : "text-gray1"} bgColor={isDark ? "bg-[#1E314A]" : "bg-gray2"} isDark={isDark} />
       </div>
 
       <div className="h-2" /> {/* Spacer instead of legend */}
@@ -71,10 +73,10 @@ export default function JuzMapScreen({ currentAyah, storageMode, onNavigate }: J
                 onClick={() => setExpandedSurahId(isExpanded ? null : surah.id)}
                 className={`w-full text-left rounded-[24px] p-5 border-2 relative overflow-hidden transition-all hover:scale-[1.01] active:scale-[0.99] ${
                 isCompleted 
-                  ? "bg-[#D7FFB8] border-[#A3E635] text-green-dark" 
+                  ? (isDark ? "bg-[#1A3D24] border-[#2D5A3A] text-[#60E0C1]" : "bg-[#D7FFB8] border-[#A3E635] text-green-dark")
                   : isLocked 
-                  ? "bg-gray3 border-gray2 text-gray1 opacity-60"
-                  : "bg-white border-gray2 text-text"
+                  ? (isDark ? "bg-[#101826] border-[#1E314A] text-[#50728D] opacity-60" : "bg-gray3 border-gray2 text-gray1 opacity-60")
+                  : (isDark ? "bg-[#152336] border-[#1E314A] text-white" : "bg-white border-gray2 text-text")
               }`}>
                 {isCompleted && (
                   <div className="absolute right-5 top-1/2 -translate-y-1/2 opacity-20 text-[60px]">🌱</div>
@@ -86,7 +88,7 @@ export default function JuzMapScreen({ currentAyah, storageMode, onNavigate }: J
                       {isCompleted && <span className="text-[12px] font-black uppercase tracking-tight flex items-center gap-1">
                         <span className="text-[14px]">✓</span> COMPLETE
                       </span>}
-                      {isActive && <span className="text-[12px] font-black uppercase text-blue-dark opacity-70">
+                      {isActive && <span className={`text-[12px] font-black uppercase opacity-70 ${isDark ? 'text-[#60E0C1]' : 'text-blue-dark'}`}>
                         NOW STUDYING → {surah.name.toUpperCase()}
                       </span>}
                       {isLocked && <span className="text-[12px] font-black uppercase opacity-60">LOCKED</span>}
@@ -136,8 +138,8 @@ export default function JuzMapScreen({ currentAyah, storageMode, onNavigate }: J
                           state === "studied" ? "bg-green text-white shadow-[0_2px_0_#46A302]" :
                           state === "hasNew" ? "bg-teal text-white shadow-[0_2px_0_#008E80]" :
                           state === "current" ? "bg-gold text-white ring-4 ring-gold-light scale-110 z-10 shadow-[0_2px_0_#CE9200]" :
-                          state === "upcoming" ? "bg-[#FFDDB7] text-[#CE8200]" :
-                          "bg-gray2 text-gray1 opacity-40 cursor-not-allowed"
+                          state === "upcoming" ? (isDark ? "bg-[#3D2E1A] text-[#FFB84D]" : "bg-[#FFDDB7] text-[#CE8200]") :
+                          (isDark ? "bg-[#1E314A] text-[#50728D] opacity-40 cursor-not-allowed" : "bg-gray2 text-gray1 opacity-40 cursor-not-allowed")
                         }`}
                       >
                         {verseNum}
@@ -145,8 +147,8 @@ export default function JuzMapScreen({ currentAyah, storageMode, onNavigate }: J
                     );
                   })}
                   {surah.id === 2 && (
-                    <div className="col-span-full text-center py-4 bg-white/50 rounded-xl mt-2 border-2 border-dashed border-gray2">
-                       <span className="text-[11px] font-bold text-gray1 uppercase tracking-widest">
+                    <div className={`col-span-full text-center py-4 rounded-xl mt-2 border-2 border-dashed ${isDark ? 'bg-[#101826]/50 border-[#1E314A]' : 'bg-white/50 border-gray2'}`}>
+                       <span className={`text-[11px] font-bold uppercase tracking-widest ${isDark ? 'text-[#50728D]' : 'text-gray1'}`}>
                          Ayahs 142+ coming soon
                        </span>
                     </div>
@@ -161,9 +163,11 @@ export default function JuzMapScreen({ currentAyah, storageMode, onNavigate }: J
   );
 }
 
-function StatBox({ label, value, colorClass, bgColor }: { label: string; value: number; colorClass: string; bgColor: string }) {
+function StatBox({ label, value, colorClass, bgColor, isDark }: { label: string; value: number; colorClass: string; bgColor: string; isDark: boolean }) {
   return (
-    <div className="bg-white rounded-[20px] p-2.5 shadow-sm border-2 border-gray2 flex flex-col items-center justify-center min-h-[75px]">
+    <div className={`rounded-[20px] p-2.5 shadow-sm border-2 flex flex-col items-center justify-center min-h-[75px] transition-colors ${
+      isDark ? 'bg-[#152336] border-[#1E314A]' : 'bg-white border-gray2'
+    }`}>
       <div className={`text-[22px] font-black ${colorClass} leading-none mb-2`}>{value}</div>
       <div className="flex items-center gap-1.5">
         <div className={`w-2.5 h-2.5 rounded-[3px] ${bgColor}`} />
@@ -172,5 +176,3 @@ function StatBox({ label, value, colorClass, bgColor }: { label: string; value: 
     </div>
   );
 }
-
-

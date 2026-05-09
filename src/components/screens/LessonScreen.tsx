@@ -418,7 +418,7 @@ export default function LessonScreen({ ayahKey, lang, theme, storageMode, onGoHo
               </div>
               
               {/* Arabic Context */}
-              <div className="flex flex-wrap gap-x-2 gap-y-5 justify-end mb-8" dir="rtl">
+              <div className="flex flex-wrap gap-x-2 gap-y-5 justify-start mb-8" dir="rtl">
                 {data.words.map((w, idx) => {
                   const isTarget = idx === currentWordIndex;
                   const wordClass = isTarget 
@@ -437,12 +437,12 @@ export default function LessonScreen({ ayahKey, lang, theme, storageMode, onGoHo
               </div>
               
               {/* English Context - Word by Word with Highlight */}
-              <div className={`text-[16px] leading-relaxed italic text-center mb-4 ${isDark ? 'text-white' : 'text-text'}`}>
+              <div className={`text-[16px] leading-relaxed italic text-left mb-4 ${isDark ? 'text-white' : 'text-text'}`}>
                  "
                  {data.words.map((w, idx) => {
                    const isTarget = idx === currentWordIndex;
                    const highlightClass = isTarget 
-                     ? (isDark ? "text-[#60E0C1] font-bold" : "bg-yellow-200 text-black font-bold px-1 rounded inline-block") 
+                     ? (isDark ? "text-[#60E0C1] font-bold underline decoration-2 underline-offset-4" : "bg-yellow-100 text-black font-bold px-1 rounded inline-block shadow-sm") 
                      : "";
                    return (
                      <span key={w.position} className={highlightClass}>
@@ -454,7 +454,7 @@ export default function LessonScreen({ ayahKey, lang, theme, storageMode, onGoHo
               </div>
 
               {/* English Context - Semantic Ayah Translation */}
-              <div className={`text-[14px] leading-relaxed text-center opacity-70 ${cardMuted}`}>
+              <div className={`text-[14px] leading-relaxed text-left opacity-70 border-l-4 pl-4 ${isDark ? 'border-[#284155] text-[#A1B2C3]' : 'border-blue-light text-text-light'}`}>
                  {data.translation}
               </div>
             </div>
@@ -462,19 +462,34 @@ export default function LessonScreen({ ayahKey, lang, theme, storageMode, onGoHo
 
           {/* TAFSIR TAB */}
           {activeTab === "Tafsir" && (
-            <div className={`${cardBg} border-2 rounded-[24px] p-6 shadow-sm`}>
-              <div className="flex justify-between items-center mb-5">
-                <div className={`text-[10px] font-black uppercase tracking-widest ${cardTitle}`}>Tafsir Excerpt</div>
-                <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${isDark ? 'bg-[#352C4B] text-[#B495DF]' : 'bg-purple-light text-purple-dark'}`}>
+            <div className={`${cardBg} border-2 rounded-[24px] p-7 shadow-md relative overflow-hidden`}>
+              <div className={`absolute top-0 left-0 w-1.5 h-full ${isDark ? 'bg-[#4A4C3B]' : 'bg-purple'}`} />
+              
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded-lg ${isDark ? 'bg-[#202E45]' : 'bg-purple-light/30'}`}>
+                    <svg className={`w-4 h-4 ${isDark ? 'text-[#60E0C1]' : 'text-purple'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <div className={`text-[11px] font-black uppercase tracking-widest ${cardTitle}`}>Tafsir Excerpt</div>
+                </div>
+                <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm ${isDark ? 'bg-[#352C4B] text-[#B495DF]' : 'bg-purple-light text-purple-dark'}`}>
                   Ibn Kathir
                 </div>
               </div>
-              <div className={`text-[15px] leading-relaxed ${isDark ? 'text-white' : 'text-text'}`}>
+
+              <div className={`text-[16px] leading-[1.7] text-justify mb-6 ${isDark ? 'text-white' : 'text-text'}`}>
+                <span className={`text-[24px] leading-none font-serif opacity-30 float-left mr-2 mt-1 ${isDark ? 'text-white' : 'text-purple'}`}>“</span>
                 {getShortTafsir(data.tafsir)}
               </div>
+
               {morph?.description && (
-                <div className={`mt-6 pt-5 border-t-2 text-[14px] leading-relaxed ${isDark ? 'border-[#1E314A] text-[#A1B2C3]' : 'border-gray-100 text-text-light'}`}>
-                  <span className={`font-black mr-1 ${isDark ? 'text-white' : 'text-text'}`}>Grammar Note:</span>{morph.description}
+                <div className={`p-4 rounded-xl border-l-4 ${isDark ? 'bg-[#101826]/50 border-[#284155] text-[#A1B2C3]' : 'bg-gray3 border-gray2 text-text-light'}`}>
+                  <div className={`text-[10px] font-black uppercase tracking-wider mb-1.5 ${isDark ? 'text-[#60E0C1]' : 'text-blue'}`}>Grammar Insight</div>
+                  <div className="text-[13px] leading-relaxed">
+                    {morph.description}
+                  </div>
                 </div>
               )}
             </div>

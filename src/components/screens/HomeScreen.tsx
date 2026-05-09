@@ -12,11 +12,13 @@ interface HomeScreenProps {
   streak: number;
   currentAyah: string;
   storageMode: "guest" | "cloud";
+  theme: "light" | "dark";
   onStartReview: () => void;
   onStartLesson: (ref: string) => void;
 }
 
-export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah, storageMode, onStartReview, onStartLesson }: HomeScreenProps) {
+export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah, storageMode, theme, onStartReview, onStartLesson }: HomeScreenProps) {
+  const isDark = theme === "dark";
   const lv = getLevel(xp);
   const nx = getNextLevel(xp);
   const xpToNext = nx ? nx.minXP - xp : 0;
@@ -45,7 +47,7 @@ export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah,
   const pct = targetXp > 0 ? Math.min(100, Math.round((dailyXp / targetXp) * 100)) : 0;
 
   return (
-    <div className="flex-1 overflow-y-auto p-3.5">
+    <div className={`flex-1 overflow-y-auto p-4 transition-colors duration-300 ${isDark ? 'bg-[#0B1121]' : 'bg-[#F0F4F8]'}`}>
       {/* Level Banner */}
       <div className="bg-gradient-to-br from-blue to-purple rounded-[var(--radius-card)] p-4 mb-3 flex items-center justify-between text-white">
         <div>
@@ -59,9 +61,9 @@ export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah,
       </div>
 
       {/* Daily Goal */}
-      <div className="bg-white border-2 border-gray2 rounded-[var(--radius-card)] p-3 mb-3">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-[12px] font-extrabold text-text">Daily Goal</span>
+      <div className={`border-2 rounded-[var(--radius-card)] p-4 mb-3 transition-colors ${isDark ? 'bg-[#152336] border-[#1E314A]' : 'bg-white border-gray2'}`}>
+        <div className="flex justify-between items-center mb-3">
+          <span className={`text-[12px] font-black uppercase tracking-wider ${isDark ? 'text-[#50728D]' : 'text-text'}`}>Daily Goal</span>
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] font-bold text-gray-400">{dailyXp} / {targetXp} XP</span>
             <span className="text-[12px] font-black text-green-dark">{pct}%</span>
@@ -89,10 +91,10 @@ export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah,
           { emoji: "⚡", value: String(xp), label: "Total XP" },
           { emoji: "🔥", value: String(streak), label: "Streak" },
         ].map((s) => (
-          <div key={s.label} className="bg-gray3 rounded-[var(--radius-sm)] p-3 text-center">
+          <div key={s.label} className={`rounded-[var(--radius-sm)] p-3 text-center border-2 transition-colors ${isDark ? 'bg-[#101826] border-[#1E314A]' : 'bg-gray3 border-transparent'}`}>
             <div className="text-[20px] mb-1">{s.emoji}</div>
-            <div className="text-[17px] font-black text-text">{s.value}</div>
-            <div className="text-[9px] font-bold text-text-light uppercase tracking-wide mt-[2px]">{s.label}</div>
+            <div className={`text-[17px] font-black ${isDark ? 'text-white' : 'text-text'}`}>{s.value}</div>
+            <div className={`text-[9px] font-bold uppercase tracking-wide mt-[2px] ${isDark ? 'text-[#50728D]' : 'text-text-light'}`}>{s.label}</div>
           </div>
         ))}
       </div>
@@ -108,16 +110,16 @@ export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah,
       {/* Due for Review */}
       {dueCards.length > 0 && (
         <>
-          <div className="section-header">Due for review</div>
+          <div className={`section-header ${isDark ? 'text-[#50728D]' : ''}`}>Due for review</div>
           {dueCards.map((card) => (
             <button
               key={card.id}
               onClick={onStartReview}
-              className="w-full bg-white border-2 border-gray2 rounded-[var(--radius-sm)] p-3 mb-[7px] flex items-center justify-between cursor-pointer hover:border-blue transition-colors text-left"
+              className={`w-full border-2 rounded-[var(--radius-sm)] p-4 mb-[7px] flex items-center justify-between cursor-pointer transition-all text-left ${isDark ? 'bg-[#152336] border-[#1E314A] hover:border-blue' : 'bg-white border-gray2 hover:border-blue'}`}
             >
               <div>
-                <div className="text-[19px] text-text font-amiri">{card.arabic}</div>
-                <div className="text-[10px] text-text-light font-semibold mt-[1px]">{card.root} · {card.meaning}</div>
+                <div className={`text-[20px] font-naskh ${isDark ? 'text-white' : 'text-text'}`}>{card.arabic}</div>
+                <div className={`text-[10px] font-bold mt-[2px] ${isDark ? 'text-[#50728D]' : 'text-text-light'}`}>{card.root} · {card.meaning}</div>
               </div>
               <span className="pill pill-review">review</span>
             </button>
