@@ -139,7 +139,7 @@ export default function LedgerScreen({ storageMode, theme }: LedgerScreenProps) 
                   {/* Top row: Root + Due badge */}
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex flex-col">
-                      <span className={`text-[28px] font-amiri font-bold leading-none mb-0.5 ${isDark ? 'text-[#60E0C1]' : 'text-blue-dark'}`}>
+                      <span className={`text-[28px] font-quran font-bold leading-none mb-0.5 ${isDark ? 'text-[#60E0C1]' : 'text-blue-dark'}`}>
                         {entry.root || entry.lemma}
                       </span>
                     </div>
@@ -154,14 +154,14 @@ export default function LedgerScreen({ storageMode, theme }: LedgerScreenProps) 
                   {/* Surface form bubble */}
                   <div className="flex flex-wrap gap-2 mb-2">
                     {entry.first_surface_form && (
-                      <span className={`inline-block text-[16px] font-amiri px-3 py-1 rounded-full border-2 ${
+                      <span className={`inline-block text-[16px] font-quran px-3 py-1 rounded-full border-2 ${
                         isDark ? 'bg-[#1A3D24] border-[#2D5A3A] text-[#60E0C1]' : 'bg-green-light border-green text-green-dark'
                       }`}>
                         {entry.first_surface_form}
                       </span>
                     )}
                     {entry.lemma && entry.lemma !== entry.first_surface_form && (
-                      <span className={`inline-block text-[16px] font-amiri px-3 py-1 rounded-full border-2 ${
+                      <span className={`inline-block text-[16px] font-quran px-3 py-1 rounded-full border-2 ${
                         isDark ? 'bg-[#1A2D4D] border-[#2D4A6A] text-[#7AC0FF]' : 'bg-blue-light border-blue text-blue-dark'
                       }`}>
                         {entry.lemma}

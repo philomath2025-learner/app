@@ -295,7 +295,7 @@ export default function LessonScreen({ ayahKey, lang, theme, storageMode, onGoHo
         
         {/* ── 1. Hero Card ── */}
         <div className={`${heroBg} border-[2px] rounded-[32px] p-8 mb-4 relative flex flex-col items-center justify-center min-h-[240px] shadow-sm animate-fade-in`}>
-          <div className="text-[76px] font-naskh leading-tight mb-8 drop-shadow-md" style={{ color: isDark ? '#60E0C1' : '' }}>
+          <div className="text-[76px] font-quran leading-tight mb-8 drop-shadow-md" style={{ color: isDark ? '#60E0C1' : '' }}>
             <span className={!isDark ? heroText : ''}>{targetWord.arabic}</span>
           </div>
 
@@ -315,7 +315,7 @@ export default function LessonScreen({ ayahKey, lang, theme, storageMode, onGoHo
         </div>
 
         {/* Root Display (below hero) */}
-        <div className={`text-center font-naskh text-[26px] ${rootTextClass} mb-3 tracking-[0.3em] h-8 mt-2`}>
+        <div className={`text-center font-quran text-[26px] ${rootTextClass} mb-3 tracking-[0.3em] h-8 mt-2`}>
           {morph?.root || ""}
         </div>
 
@@ -376,7 +376,7 @@ export default function LessonScreen({ ayahKey, lang, theme, storageMode, onGoHo
                   <div className="flex flex-wrap gap-3">
                     {morph?.lemma && (
                       <span className={`px-4 py-2.5 rounded-xl text-[20px] font-bold border-2 ${isDark ? 'bg-[#202E45] border-[#284155] text-[#60E0C1]' : 'bg-[#F4F0FF] border-[#E0D4F5] text-purple-dark'}`}>
-                        <span className="font-naskh">{morph.lemma}</span>
+                        <span className="font-quran">{morph.lemma}</span>
                       </span>
                     )}
                     
@@ -388,7 +388,7 @@ export default function LessonScreen({ ayahKey, lang, theme, storageMode, onGoHo
 
                     {!loadingForms && relatedForms.map(form => (
                       <span key={form} className={`px-4 py-2.5 rounded-xl text-[20px] font-bold border-2 transition-transform hover:scale-105 ${isDark ? 'bg-[#1A283B] border-[#284155] text-white' : 'bg-white border-gray2 text-blue-dark'}`}>
-                        <span className="font-naskh">{form}</span>
+                        <span className="font-quran">{form}</span>
                       </span>
                     ))}
                   </div>
@@ -428,7 +428,7 @@ export default function LessonScreen({ ayahKey, lang, theme, storageMode, onGoHo
                   return (
                     <span 
                       key={w.position} 
-                      className={`font-naskh text-[32px] leading-loose transition-all duration-300 ${wordClass}`}
+                      className={`font-quran text-[32px] leading-loose transition-all duration-300 ${wordClass}`}
                     >
                       {w.arabic}
                     </span>

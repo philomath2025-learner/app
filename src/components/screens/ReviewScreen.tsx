@@ -155,13 +155,13 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
               <div className="flex-1 flex flex-col items-center justify-center py-4">
                 <div className={`px-6 py-4 rounded-2xl border-2 mb-8 shadow-sm transition-colors ${isDark ? 'bg-[#101826] border-[#284155]' : 'bg-blue-light/30 border-blue/10'}`}>
                   <div className={`text-[10px] font-black uppercase tracking-widest mb-1 text-center ${isDark ? 'text-[#60E0C1]' : 'text-blue-dark'}`}>Recall Meaning</div>
-                  <div className={`text-[48px] font-naskh leading-none ${isDark ? 'text-white' : 'text-text'}`}>{card.arabic}</div>
+                  <div className={`text-[48px] font-quran leading-none ${isDark ? 'text-white' : 'text-text'}`}>{card.arabic}</div>
                 </div>
 
                 <div className={`text-[14px] mb-3 font-bold tracking-tight uppercase ${isDark ? 'text-[#50728D]' : 'text-gray1'}`}>{card.ref}</div>
                 
                 <div className="w-full text-center px-2" dir="rtl">
-                  <div className={`text-[32px] sm:text-[38px] font-naskh leading-[1.6] opacity-90 ${isDark ? 'text-white' : 'text-text'}`}>
+                  <div className={`text-[32px] sm:text-[38px] font-quran leading-[1.6] opacity-90 ${isDark ? 'text-white' : 'text-text'}`}>
                     {card.ayah}
                   </div>
                 </div>
@@ -175,7 +175,7 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
             /* Back Side */
             <div className="flex-1 flex flex-col p-6 overflow-y-auto custom-scrollbar animate-fade-in">
               <div className="flex flex-col items-center mb-6 shrink-0">
-                <div className={`text-[48px] font-naskh leading-tight mb-2 ${isDark ? 'text-white' : 'text-text'}`}>{card.arabic}</div>
+                <div className={`text-[48px] font-quran leading-tight mb-2 ${isDark ? 'text-white' : 'text-text'}`}>{card.arabic}</div>
                 <div className={`text-[24px] font-black mb-3 px-4 py-1 rounded-xl transition-colors ${isDark ? 'bg-[#202E45] text-[#60E0C1]' : 'bg-green-light/50 text-green-dark'}`}>
                   {card.meaning}
                 </div>
@@ -199,7 +199,7 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
                         w.arabic.replace(/[\u064B-\u065F\u0670]/g, "") === card.arabic.replace(/[\u064B-\u065F\u0670]/g, "");
                       return (
                         <div key={i} className={`text-center px-2 py-1.5 rounded-xl transition-all ${isTarget ? (isDark ? "bg-[#202E45] shadow-lg border-2 border-[#60E0C1]/30 scale-110 z-10" : "bg-white shadow-md border-2 border-green/30 scale-110 z-10") : "opacity-60"}`}>
-                          <div className={`text-[18px] font-naskh ${isTarget ? (isDark ? "text-[#60E0C1] font-bold" : "text-green-dark font-bold") : (isDark ? "text-white" : "text-text")}`}>{w.arabic}</div>
+                          <div className={`text-[18px] font-quran ${isTarget ? (isDark ? "text-[#60E0C1] font-bold" : "text-green-dark font-bold") : (isDark ? "text-white" : "text-text")}`}>{w.arabic}</div>
                           <div className={`text-[10px] font-bold ${isTarget ? (isDark ? "text-[#60E0C1]" : "text-green-dark") : (isDark ? "text-[#50728D]" : "text-text-light")}`}>{w.translation}</div>
                         </div>
                       );
@@ -217,7 +217,7 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
                  /* Fallback for simple card */
                  card.ayah && (
                    <div className={`w-full rounded-[24px] p-6 border mb-4 transition-colors ${isDark ? 'bg-[#101826] border-[#1E314A]' : 'bg-gray3/80 border-gray2/50'}`}>
-                     <div className={`text-[24px] font-naskh leading-relaxed text-right mb-4 ${isDark ? 'text-white' : 'text-text'}`} dir="rtl">
+                     <div className={`text-[24px] font-quran leading-relaxed text-right mb-4 ${isDark ? 'text-white' : 'text-text'}`} dir="rtl">
                        {card.ayah}
                      </div>
                      <div className={`text-[12px] font-bold text-center border-t pt-3 italic transition-colors ${isDark ? 'text-[#50728D] border-[#1E314A]' : 'text-text-light border-gray2/30'}`}>

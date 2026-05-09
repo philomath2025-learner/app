@@ -118,7 +118,7 @@ export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah,
               className={`w-full border-2 rounded-[var(--radius-sm)] p-4 mb-[7px] flex items-center justify-between cursor-pointer transition-all text-left ${isDark ? 'bg-[#152336] border-[#1E314A] hover:border-blue' : 'bg-white border-gray2 hover:border-blue'}`}
             >
               <div>
-                <div className={`text-[20px] font-naskh ${isDark ? 'text-white' : 'text-text'}`}>{card.arabic}</div>
+                <div className={`text-[20px] font-quran ${isDark ? 'text-white' : 'text-text'}`}>{card.arabic}</div>
                 <div className={`text-[10px] font-bold mt-[2px] ${isDark ? 'text-[#50728D]' : 'text-text-light'}`}>{card.root} · {card.meaning}</div>
               </div>
               <span className="pill pill-review">review</span>
