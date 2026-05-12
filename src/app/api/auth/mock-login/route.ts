@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { signSupabaseToken } from "@/lib/jwt";
 import { supabaseAdmin } from "@/lib/supabase";
 
-export async function GET() {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+export async function GET(request: NextRequest) {
+  const appUrl = request.nextUrl.origin;
   
   // Use a stable, fake UUID for local testing
   const mockSub = "00000000-0000-0000-0000-000000000000";

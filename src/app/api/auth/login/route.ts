@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { generatePKCE, generateRandom, buildAuthUrl } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const clientId = process.env.QF_CLIENT_ID!;
   const oauthEndpoint = process.env.QF_OAUTH_ENDPOINT!;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const appUrl = request.nextUrl.origin;
   const redirectUri = appUrl;
   const scopes = "openid offline_access user streak goal bookmark reading_session preference";
 
