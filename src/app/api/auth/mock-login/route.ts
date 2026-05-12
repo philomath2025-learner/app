@@ -53,8 +53,17 @@ export async function GET() {
     });
 
     return NextResponse.redirect(`${appUrl}/?auth_success=true`);
-  } catch (err) {
-    console.error("Mock login error:", err);
-    return NextResponse.redirect(`${appUrl}/?auth_error=mock_login_failed`);
+  } catch (err: any) {
+    console.error("MOCK_LOGIN_ERROR_DETAILS:", {
+      message: err.message,
+      stack: err.stack,
+      env: {
+        hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        hasJwtSecret: !!process.env.SUPABASE_JWT_SECRET,
+        appUrl
+      }
+    });
+    return NextResponse.redirect(`${appUrl}/?auth_error=mock_login_failed&details=${encodeURIComponent(err.message)}`);
   }
 }

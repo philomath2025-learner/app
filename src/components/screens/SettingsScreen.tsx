@@ -80,7 +80,7 @@ export default function SettingsScreen({
   useEffect(() => {
     if (!showLangModal || allLanguages.length > 0) return;
     setLoadingLangs(true);
-    
+
     // Fetch both languages and the full translations list to get accurate counts
     Promise.all([
       fetch("/api/languages").then(r => r.json()),
@@ -151,11 +151,10 @@ export default function SettingsScreen({
       </h2>
 
       {/* ── Content Language (Premium Design) ── */}
-      <div className={`rounded-2xl p-5 mb-4 transition-all duration-300 relative overflow-hidden ${
-        isDark 
-          ? 'bg-gradient-to-br from-[#1A2639] to-[#0F1623] border border-[#2A3F54] shadow-lg shadow-black/20' 
+      <div className={`rounded-2xl p-5 mb-4 transition-all duration-300 relative overflow-hidden ${isDark
+          ? 'bg-gradient-to-br from-[#1A2639] to-[#0F1623] border border-[#2A3F54] shadow-lg shadow-black/20'
           : 'bg-gradient-to-br from-white to-blue-50 border border-blue-100 shadow-xl shadow-blue-900/5'
-      }`}>
+        }`}>
         {/* Subtle background accent */}
         <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20 -mr-10 -mt-10 pointer-events-none ${isDark ? 'bg-[#60E0C1]' : 'bg-blue-400'}`}></div>
 
@@ -168,11 +167,10 @@ export default function SettingsScreen({
 
         <button
           onClick={() => setShowLangModal(true)}
-          className={`w-full flex items-center justify-between p-4 mb-5 rounded-xl transition-all duration-300 group relative z-10 ${
-            isDark 
-              ? 'bg-[#101826]/80 hover:bg-[#152336] border border-[#1E314A] hover:border-[#60E0C1]/50 shadow-md shadow-black/20' 
+          className={`w-full flex items-center justify-between p-4 mb-5 rounded-xl transition-all duration-300 group relative z-10 ${isDark
+              ? 'bg-[#101826]/80 hover:bg-[#152336] border border-[#1E314A] hover:border-[#60E0C1]/50 shadow-md shadow-black/20'
               : 'bg-white hover:bg-blue-50/80 border border-gray-100 hover:border-blue-300 shadow-sm hover:shadow-md hover:shadow-blue-900/5'
-          }`}
+            }`}
         >
           <div className="flex items-center gap-4">
             <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner ${isDark ? 'bg-gradient-to-br from-[#202E45] to-[#101826] border border-[#2A3F54]' : 'bg-gradient-to-br from-blue-50 to-white border border-blue-100'}`}>
@@ -204,11 +202,10 @@ export default function SettingsScreen({
         {translationId && (
           <button
             onClick={() => setShowTranslations(true)}
-            className={`w-full flex items-center justify-between p-4 mb-3 rounded-xl transition-all duration-300 group relative z-10 ${
-              isDark 
-                ? 'bg-[#101826]/80 hover:bg-[#152336] border border-[#1E314A] hover:border-[#60E0C1]/50 shadow-md shadow-black/20' 
+            className={`w-full flex items-center justify-between p-4 mb-3 rounded-xl transition-all duration-300 group relative z-10 ${isDark
+                ? 'bg-[#101826]/80 hover:bg-[#152336] border border-[#1E314A] hover:border-[#60E0C1]/50 shadow-md shadow-black/20'
                 : 'bg-white hover:bg-blue-50/80 border border-gray-100 hover:border-blue-300 shadow-sm hover:shadow-md hover:shadow-blue-900/5'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner ${isDark ? 'bg-gradient-to-br from-[#202E45] to-[#101826] border border-[#2A3F54]' : 'bg-gradient-to-br from-blue-50 to-white border border-blue-100'}`}>
@@ -238,21 +235,19 @@ export default function SettingsScreen({
         <div className="flex gap-2">
           <button
             onClick={() => onSetTheme("light")}
-            className={`flex-1 py-3 rounded-[var(--radius-sm)] border-2 text-[14px] font-bold cursor-pointer transition-all ${
-              theme === "light"
+            className={`flex-1 py-3 rounded-[var(--radius-sm)] border-2 text-[14px] font-bold cursor-pointer transition-all ${theme === "light"
                 ? "border-blue bg-blue-light text-blue-dark"
                 : (isDark ? "border-[#1E314A] bg-[#101826] text-[#50728D]" : "border-gray2 bg-white text-text-light")
-            }`}
+              }`}
           >
             ☀️ Light
           </button>
           <button
             onClick={() => onSetTheme("dark")}
-            className={`flex-1 py-3 rounded-[var(--radius-sm)] border-2 text-[14px] font-bold cursor-pointer transition-all ${
-              theme === "dark"
+            className={`flex-1 py-3 rounded-[var(--radius-sm)] border-2 text-[14px] font-bold cursor-pointer transition-all ${theme === "dark"
                 ? (isDark ? "border-[#60E0C1] bg-[#202E45] text-[#60E0C1]" : "border-purple bg-purple-light text-purple-dark")
                 : (isDark ? "border-[#1E314A] bg-[#101826] text-[#50728D]" : "border-gray2 bg-white text-text-light")
-            }`}
+              }`}
           >
             🌙 Dark
           </button>
@@ -269,11 +264,10 @@ export default function SettingsScreen({
             <button
               key={n}
               onClick={() => onSetReviewLimit(n)}
-              className={`flex-1 py-3 rounded-[var(--radius-sm)] border-2 text-[14px] font-bold cursor-pointer transition-all ${
-                reviewLimit === n
+              className={`flex-1 py-3 rounded-[var(--radius-sm)] border-2 text-[14px] font-bold cursor-pointer transition-all ${reviewLimit === n
                   ? "border-green bg-green-light text-green-dark"
                   : (isDark ? "border-[#1E314A] bg-[#101826] text-[#50728D]" : "border-gray2 bg-white text-text-light")
-              }`}
+                }`}
             >
               {n}
             </button>
@@ -291,11 +285,10 @@ export default function SettingsScreen({
             <button
               key={n}
               onClick={() => onSetNewWordsLimit(n)}
-              className={`flex-1 py-3 rounded-[var(--radius-sm)] border-2 text-[14px] font-bold cursor-pointer transition-all ${
-                newWordsLimit === n
+              className={`flex-1 py-3 rounded-[var(--radius-sm)] border-2 text-[14px] font-bold cursor-pointer transition-all ${newWordsLimit === n
                   ? "border-green bg-green-light text-green-dark"
                   : (isDark ? "border-[#1E314A] bg-[#101826] text-[#50728D]" : "border-gray2 bg-white text-text-light")
-              }`}
+                }`}
             >
               {n}
             </button>
@@ -342,9 +335,8 @@ export default function SettingsScreen({
 
           {/* Modal */}
           <div
-            className={`relative w-full max-w-[400px] max-h-[70vh] rounded-[24px] border-2 flex flex-col overflow-hidden shadow-2xl animate-fade-in ${
-              isDark ? 'bg-[#0B1121] border-[#1E314A]' : 'bg-white border-gray2'
-            }`}
+            className={`relative w-full max-w-[400px] max-h-[70vh] rounded-[24px] border-2 flex flex-col overflow-hidden shadow-2xl animate-fade-in ${isDark ? 'bg-[#0B1121] border-[#1E314A]' : 'bg-white border-gray2'
+              }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -355,9 +347,8 @@ export default function SettingsScreen({
                 </h3>
                 <button
                   onClick={() => setShowLangModal(false)}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-[16px] font-bold transition-colors ${
-                    isDark ? 'bg-[#152336] text-[#50728D] hover:text-white' : 'bg-gray3 text-gray1 hover:text-text'
-                  }`}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-[16px] font-bold transition-colors ${isDark ? 'bg-[#152336] text-[#50728D] hover:text-white' : 'bg-gray3 text-gray1 hover:text-text'
+                    }`}
                 >
                   ✕
                 </button>
@@ -372,11 +363,10 @@ export default function SettingsScreen({
                 </div>
                 <input
                   type="text"
-                  className={`w-full pl-9 pr-4 py-2.5 rounded-xl text-[14px] font-medium outline-none border-2 focus:border-blue ${
-                    isDark
+                  className={`w-full pl-9 pr-4 py-2.5 rounded-xl text-[14px] font-medium outline-none border-2 focus:border-blue ${isDark
                       ? 'bg-[#152336] border-[#1E314A] text-white placeholder-[#50728D]'
                       : 'bg-gray3 border-transparent text-text placeholder-gray1'
-                  }`}
+                    }`}
                   placeholder={T("searchLanguages")}
                   value={langSearch}
                   onChange={(e) => setLangSearch(e.target.value)}
@@ -406,11 +396,10 @@ export default function SettingsScreen({
                       <button
                         key={l.id}
                         onClick={() => handleSelectLanguage(l.iso_code)}
-                        className={`w-full text-left py-3 px-4 rounded-xl border-2 transition-all flex items-center justify-between ${
-                          isActive
+                        className={`w-full text-left py-3 px-4 rounded-xl border-2 transition-all flex items-center justify-between ${isActive
                             ? (isDark ? "border-[#60E0C1] bg-[#202E45]" : "border-blue bg-blue-light")
                             : (isDark ? "border-transparent hover:border-[#1E314A] hover:bg-[#152336]" : "border-transparent hover:border-gray2 hover:bg-gray3")
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-2">
                           <span className={`text-[14px] font-bold ${isActive ? (isDark ? 'text-[#60E0C1]' : 'text-blue-dark') : (isDark ? 'text-white' : 'text-text')}`}>
@@ -455,9 +444,8 @@ export default function SettingsScreen({
 
           {/* Modal */}
           <div
-            className={`relative w-full max-w-[400px] max-h-[70vh] rounded-[24px] border-2 flex flex-col overflow-hidden shadow-2xl animate-fade-in ${
-              isDark ? 'bg-[#0B1121] border-[#1E314A]' : 'bg-white border-gray2'
-            }`}
+            className={`relative w-full max-w-[400px] max-h-[70vh] rounded-[24px] border-2 flex flex-col overflow-hidden shadow-2xl animate-fade-in ${isDark ? 'bg-[#0B1121] border-[#1E314A]' : 'bg-white border-gray2'
+              }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -468,9 +456,8 @@ export default function SettingsScreen({
                 </h3>
                 <button
                   onClick={() => setShowTranslations(false)}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-[16px] font-bold transition-colors ${
-                    isDark ? 'bg-[#152336] text-[#50728D] hover:text-white' : 'bg-gray3 text-gray1 hover:text-text'
-                  }`}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-[16px] font-bold transition-colors ${isDark ? 'bg-[#152336] text-[#50728D] hover:text-white' : 'bg-gray3 text-gray1 hover:text-text'
+                    }`}
                 >
                   ✕
                 </button>
@@ -501,11 +488,10 @@ export default function SettingsScreen({
                       <button
                         key={t.id}
                         onClick={() => handleSelectTranslation(t.id)}
-                        className={`w-full text-left py-3.5 px-4 rounded-xl border-2 transition-all flex items-center justify-between ${
-                          isActive
+                        className={`w-full text-left py-3.5 px-4 rounded-xl border-2 transition-all flex items-center justify-between ${isActive
                             ? (isDark ? "border-[#60E0C1] bg-[#202E45]" : "border-blue bg-blue-light")
                             : (isDark ? "border-transparent hover:border-[#1E314A] hover:bg-[#152336]" : "border-transparent hover:border-gray2 hover:bg-gray3")
-                        }`}
+                          }`}
                       >
                         <div className="flex flex-col">
                           <span className={`text-[15px] font-bold ${isActive ? (isDark ? 'text-[#60E0C1]' : 'text-blue-dark') : (isDark ? 'text-white' : 'text-text')}`}>
