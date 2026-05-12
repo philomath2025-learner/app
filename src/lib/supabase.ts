@@ -10,9 +10,9 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-project.supabase.co";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "placeholder-key";
 
 // ── Client-side (anon key — RLS enforced) ──
 
@@ -38,8 +38,6 @@ function getCookie(name: string) {
 
 // ── Server-side (service_role — bypasses RLS) ──
 // ONLY use in API routes / server components. Never expose to client.
-// Note: No Database generic — our schema types are stubs, so we use
-// an untyped client to avoid `never` errors on every query.
 
 export const supabaseAdmin = createClient(
   supabaseUrl,
