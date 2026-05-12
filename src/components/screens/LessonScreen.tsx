@@ -218,6 +218,35 @@ export default function LessonScreen({ ayahKey, lang, translationId, tafsirId, t
     }
   };
 
+  const isAyahComplete = data ? currentWordIndex >= data.words.length : false;
+  
+  // Capture decisions when ayah is complete
+  useEffect(() => {
+    if (isAyahComplete && data?.words && data.words.length > 0) {
+      const saveAllDecisions = async () => {
+        try {
+          const provider = getStorageProvider(storageMode);
+          const decisions = data.words.map((w: any) => ({
+            ayah_key: data.ayahKey,
+            word_position: w.position,
+            arabic: w.arabic,
+            root: w.morphology?.root || w.morphology?.lemma || null,
+            dedup_level: w.rule === "NEW" ? 0 : parseInt(w.rule?.replace('L', '') || '1', 10),
+            rule: w.rule,
+            verdict: w.verdict,
+            reason: w.reason,
+            xp_awarded: w.verdict === "NEW" ? 10 : (w.verdict === "reinforce" ? 5 : 0),
+            decided_at: new Date().toISOString(),
+          }));
+          await provider.saveDecisions(decisions);
+        } catch (e) {
+          console.error("Failed to save decisions:", e);
+        }
+      };
+      saveAllDecisions();
+    }
+  }, [isAyahComplete, data, storageMode]);
+
   if (loading) {
     return (
       <div className={`flex-1 flex items-center justify-center p-3.5 ${isDark ? 'bg-[#0B1121] text-white' : ''}`}>
@@ -240,8 +269,6 @@ export default function LessonScreen({ ayahKey, lang, translationId, tafsirId, t
     );
   }
 
-  const isAyahComplete = currentWordIndex >= data.words.length;
-  
   if (isAyahComplete) {
     return (
       <div className={`flex-1 flex flex-col justify-center p-6 ${isDark ? 'bg-[#0B1121]' : 'bg-[#F0F4F8]'}`}>

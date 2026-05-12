@@ -50,6 +50,19 @@ export interface VocabularyLedgerEntry {
   frequency_root?: number;
 }
 
+export interface VocabularyDecision {
+  ayah_key: string;
+  word_position: number;
+  arabic: string;
+  root: string | null;
+  dedup_level: number;
+  rule?: string;
+  verdict: "NEW" | "new" | "reinforce" | "particle" | "skip";
+  reason: string | null;
+  xp_awarded: number;
+  decided_at: string;
+}
+
 export interface StorageProvider {
   /** Check if the provider is initialized/ready */
   init(): Promise<void>;
@@ -59,6 +72,12 @@ export interface StorageProvider {
   
   /** Mark a word as learned and update XP */
   markWordLearned(word: LearnedWord): Promise<void>;
+  
+  /** Save deduplication decisions for an entire Ayah */
+  saveDecisions(decisions: VocabularyDecision[]): Promise<void>;
+
+  /** Get the deduplication audit trail */
+  getDecisions(): Promise<VocabularyDecision[]>;
   
   /** Update user XP */
   updateXP(amount: number): Promise<void>;

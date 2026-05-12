@@ -9,8 +9,8 @@ export default function OnboardingScreen({ onLogin, onGuest }: OnboardingScreenP
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-fade-in">
       {/* Mascot/Logo area */}
-      <div className="w-32 h-32 bg-gradient-to-br from-green to-[#7BED00] rounded-full flex items-center justify-center shadow-lg mb-8 animate-float">
-        <span className="text-[64px]">📖</span>
+      <div className="w-32 h-32 mb-8 animate-float">
+        <img src="/logo.png" alt="QuranLingo Logo" className="w-full h-full object-contain" />
       </div>
 
       <h1 className="text-[28px] font-black text-text mb-3 leading-tight">
