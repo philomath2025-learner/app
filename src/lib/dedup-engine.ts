@@ -18,6 +18,9 @@ export interface DedupedWord {
     description?: string;
   } | null;
   status: WordStatus;
+  verdict: "NEW" | "reinforce" | "skip";
+  rule: string;
+  reason: string;
 }
 
 /**
@@ -35,20 +38,50 @@ export function runDedupEngine(
     const pos = word.morphology?.pos || "particle";
     const knownEntry = knownLedger.get(root);
 
+    // Particle logic
+    if (pos === "particle" || !word.morphology?.root) {
+      return { 
+        ...word, 
+        status: "particle", 
+        verdict: "skip", 
+        rule: "L1", 
+        reason: `${word.morphology?.pos || "particle"} — function particle` 
+      };
+    }
+
     // L0: Completely new root
     if (!knownEntry) {
-      return { ...word, status: "new" };
+      const freqText = word.morphology?.frequency ? `, ${word.morphology.frequency} occurrences` : "";
+      return { 
+        ...word, 
+        status: "new", 
+        verdict: "NEW", 
+        rule: "NEW", 
+        reason: `First encounter ${root} root — ${pos} form${freqText}` 
+      };
     }
 
     // L1 / L2: Exact Match or Same Root + Same POS
     if (knownEntry.lemma === word.morphology?.lemma || knownEntry.pos === pos) {
-      return { ...word, status: "known" }; // Skip heavy flashcard
+      const rule = knownEntry.lemma === word.morphology?.lemma ? "L1" : "L2";
+      const firstAt = knownEntry.first_ayah_key || knownEntry.first_seen_ayah;
+      return { 
+        ...word, 
+        status: "known", 
+        verdict: "skip", 
+        rule: rule, 
+        reason: `Same root ${root}, same ${rule === "L1" ? "lemma" : "pos"} — known${firstAt ? `. First at ${firstAt}` : ''}` 
+      }; // Skip heavy flashcard
     }
 
     // L3 / L4: Same Root, but Meaning Shift or Form Shift
-    // In MVP, we treat any POS mismatch (e.g. Noun vs Verb) for a known root as "reinforce".
-    // A true L3 "meaning shift" might be taught as "new", but "reinforce" requires 
-    // them to click the button but we acknowledge they know the root.
-    return { ...word, status: "reinforce" };
+    const firstAt = knownEntry.first_ayah_key || knownEntry.first_seen_ayah;
+    return { 
+      ...word, 
+      status: "reinforce", 
+      verdict: "reinforce", 
+      rule: "L2", 
+      reason: `Same root ${root}, different form/pos — reinforce only${firstAt ? `. First at ${firstAt}` : ''}` 
+    };
   });
 }

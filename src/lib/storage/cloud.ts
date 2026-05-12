@@ -38,6 +38,31 @@ export class CloudStorageProvider implements StorageProvider {
     }
   }
 
+  async saveDecisions(decisions: import("./interface").VocabularyDecision[]): Promise<void> {
+    try {
+      if (decisions.length === 0) return;
+      await fetch("/api/lesson/decisions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decisions }),
+      });
+    } catch (err) {
+      console.error("Failed to save decisions to cloud:", err);
+    }
+  }
+
+  async getDecisions(): Promise<import("./interface").VocabularyDecision[]> {
+    try {
+      const res = await fetch("/api/lesson/decisions");
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.decisions || [];
+    } catch (err) {
+      console.error("Failed to fetch decisions from cloud:", err);
+      return [];
+    }
+  }
+
   async updateXP(amount: number): Promise<void> {
     // Supabase backend will calculate total XP, but we can hit an endpoint
     // to manually add if necessary, or let markWordLearned handle it.

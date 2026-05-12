@@ -54,18 +54,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`Successfully saved root ${word.root} for user ${profile.id}`);
 
-    // 2. Insert into vocabulary_decisions (permanent dedup log)
-    // @ts-ignore
-    await supabaseAdmin.from("vocabulary_decisions").upsert({
-      user_id: profile.id,
-      ayah_key: word.ayahKey,
-      word_position: word.position,
-      arabic: word.arabic,
-      root: word.root,
-      dedup_level: 0,
-      verdict: "new",
-      xp_awarded: 10,
-    }, { onConflict: "user_id, ayah_key, word_position" });
+    // (Removed redundant insert into vocabulary_decisions here because it's handled properly by the batch saveAllDecisions at the end of the Ayah)
 
     // 3. Update User Progress XP (assuming +10 per new root)
     // First fetch current XP

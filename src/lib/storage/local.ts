@@ -3,7 +3,7 @@ import { calculateSM2, ReviewRating, addDays } from "../srs";
 
 const DB_NAME = "QuranLingoDB";
 const STORE_NAME = "vocabulary_ledger";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export class LocalStorageProvider implements StorageProvider {
   private db: IDBDatabase | null = null;
@@ -30,6 +30,9 @@ export class LocalStorageProvider implements StorageProvider {
         const db = (event.target as IDBOpenDBRequest).result;
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           db.createObjectStore(STORE_NAME, { keyPath: "root" });
+        }
+        if (!db.objectStoreNames.contains("vocabulary_decisions")) {
+          db.createObjectStore("vocabulary_decisions", { keyPath: ["ayah_key", "word_position"] });
         }
       };
     });
@@ -97,6 +100,43 @@ export class LocalStorageProvider implements StorageProvider {
     } catch (err) {
       console.error("LocalStorageProvider error:", err);
     }
+  }
+
+  async saveDecisions(decisions: import("./interface").VocabularyDecision[]): Promise<void> {
+    if (!this.db) await this.init();
+    if (!this.db || decisions.length === 0) return;
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction("vocabulary_decisions", "readwrite");
+      const store = transaction.objectStore("vocabulary_decisions");
+      
+      decisions.forEach(decision => {
+        store.put(decision);
+      });
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+  }
+
+  async getDecisions(): Promise<import("./interface").VocabularyDecision[]> {
+    if (!this.db) await this.init();
+    if (!this.db) return [];
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction("vocabulary_decisions", "readonly");
+      const store = transaction.objectStore("vocabulary_decisions");
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        const decisions = request.result;
+        // Sort by time
+        decisions.sort((a, b) => new Date(b.decided_at).getTime() - new Date(a.decided_at).getTime());
+        resolve(decisions);
+      };
+      
+      request.onerror = () => reject(request.error);
+    });
   }
 
   async updateXP(amount: number): Promise<void> {
