@@ -48,27 +48,57 @@ export default function App() {
     setScreen(id);
   }
 
+  const handleSetTheme = useCallback((newTheme: "light" | "dark") => {
+    setTheme(newTheme);
+    const provider = getStorageProvider(storageMode);
+    provider.saveLocalPreferences({ theme: newTheme });
+  }, [storageMode]);
+
+  const handleSetReviewLimit = useCallback((limit: number) => {
+    setReviewLimit(limit);
+    const provider = getStorageProvider(storageMode);
+    provider.saveLocalPreferences({ reviewLimit: limit });
+  }, [storageMode]);
+
+  const handleSetNewWordsLimit = useCallback((limit: number) => {
+    setNewWordsLimit(limit);
+    const provider = getStorageProvider(storageMode);
+    provider.saveLocalPreferences({ newWordsLimit: limit });
+  }, [storageMode]);
+
   // Language handler — resolves default translation/tafsir IDs dynamically
-  const handleSetLang = useCallback((code: LangCode, newTranslationId?: number, newTafsirId?: number) => {
+  const handleSetLang = useCallback(async (code: LangCode, newTranslationId?: number, newTafsirId?: number) => {
     setLang(code);
+    const provider = getStorageProvider(storageMode);
+    
+    let tId: number;
     if (newTranslationId !== undefined) {
-      setTranslationId(newTranslationId);
+      tId = newTranslationId;
     } else {
       // Resolve default IDs from server
-      fetch(`/api/languages?translations=${code}`)
-        .then((r) => r.json())
-        .then((d) => {
-          const translations = d.translations || [];
-          if (translations.length > 0) {
-            setTranslationId(translations[0].id);
-          }
-        })
-        .catch(() => setTranslationId(131)); // Fallback to English
+      try {
+        const r = await fetch(`/api/languages?translations=${code}`);
+        const d = await r.json();
+        const translations = d.translations || [];
+        if (translations.length > 0) {
+          tId = translations[0].id;
+        } else {
+          tId = 131; // Fallback
+        }
+      } catch {
+        tId = 131; // Fallback to English
+      }
     }
-    if (newTafsirId !== undefined) {
-      setTafsirId(newTafsirId);
-    }
-  }, []);
+    
+    setTranslationId(tId);
+    if (newTafsirId !== undefined) setTafsirId(newTafsirId);
+    
+    provider.saveLocalPreferences({ 
+      lang: code, 
+      translationId: tId, 
+      ...(newTafsirId !== undefined ? { tafsirId: newTafsirId } : {}) 
+    });
+  }, [storageMode]);
 
   const awardXP = useCallback((amount: number, msg: string) => {
     setXp((prev) => prev + amount);
@@ -168,6 +198,14 @@ export default function App() {
 
       const goal = await provider.getDailyGoal();
       setDailyXp(goal.xp_earned);
+      
+      const prefs = await provider.getLocalPreferences();
+      setLang(prefs.lang as LangCode);
+      if (prefs.translationId) setTranslationId(prefs.translationId);
+      if (prefs.tafsirId) setTafsirId(prefs.tafsirId);
+      if (prefs.theme) setTheme(prefs.theme);
+      if (prefs.reviewLimit) setReviewLimit(prefs.reviewLimit);
+      if (prefs.newWordsLimit) setNewWordsLimit(prefs.newWordsLimit);
     }
     loadUser();
   }, [isLoggedIn, storageMode]);
@@ -278,9 +316,9 @@ export default function App() {
             reviewLimit={reviewLimit}
             newWordsLimit={newWordsLimit}
             onSetLang={handleSetLang}
-            onSetTheme={setTheme}
-            onSetReviewLimit={setReviewLimit}
-            onSetNewWordsLimit={setNewWordsLimit}
+            onSetTheme={handleSetTheme}
+            onSetReviewLimit={handleSetReviewLimit}
+            onSetNewWordsLimit={handleSetNewWordsLimit}
             onResetProgress={handleResetProgress}
           />
         )}

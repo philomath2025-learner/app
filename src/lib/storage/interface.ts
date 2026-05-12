@@ -90,6 +90,12 @@ export interface StorageProvider {
   /** Submit SM-2 review rating */
   submitReview(root: string, rating: "again" | "hard" | "good" | "easy"): Promise<void>;
 
+  /** Get user preferences */
+  getLocalPreferences(): Promise<{ lang: string; translationId: number | null; tafsirId: number | null; theme: "light" | "dark"; reviewLimit: number; newWordsLimit: number; }>;
+
+  /** Save user preferences */
+  saveLocalPreferences(prefs: Partial<{ lang: string; translationId: number | null; tafsirId: number | null; theme: "light" | "dark"; reviewLimit: number; newWordsLimit: number; }>): Promise<void>;
+
   /**
    * Fully resets the user's progress.
    * Useful for development/testing or user hard reset.

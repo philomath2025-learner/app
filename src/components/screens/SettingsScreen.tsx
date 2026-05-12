@@ -96,11 +96,13 @@ export default function SettingsScreen({
           id: "indonesian", hi: "hindi", ml: "malayalam", bn: "bengali"
         };
 
-        const enrichedLangs = langs.map(l => {
-          const expected = ISO_TO_NAME[l.iso_code] || l.name.toLowerCase();
-          const realCount = allTrans.filter(t => t.language_name.toLowerCase().includes(expected)).length;
-          return { ...l, translations_count: realCount };
-        });
+        const enrichedLangs = langs
+          .filter(l => SUPPORTED_WBW_LANGUAGES.includes(l.iso_code))
+          .map(l => {
+            const expected = ISO_TO_NAME[l.iso_code] || l.name.toLowerCase();
+            const realCount = allTrans.filter((t: QFTranslationItem) => t.language_name.toLowerCase().includes(expected)).length;
+            return { ...l, translations_count: realCount };
+          });
 
         enrichedLangs.sort((a, b) => a.name.localeCompare(b.name));
         setAllLanguages(enrichedLangs);

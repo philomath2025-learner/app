@@ -166,4 +166,26 @@ export class CloudStorageProvider implements StorageProvider {
       throw err; // Re-throw so page.tsx shows the alert
     }
   }
+
+  async getLocalPreferences(): Promise<{ lang: string; translationId: number | null; tafsirId: number | null; theme: "light" | "dark"; reviewLimit: number; newWordsLimit: number; }> {
+    const defaults = { lang: "en", translationId: 131, tafsirId: 169, theme: "light" as const, reviewLimit: 20, newWordsLimit: 10 };
+    if (typeof window !== "undefined") {
+      const data = localStorage.getItem("quranlingo_prefs");
+      if (data) {
+        try {
+          return { ...defaults, ...JSON.parse(data) };
+        } catch (e) {
+          console.error("Failed to parse local preferences", e);
+        }
+      }
+    }
+    return defaults;
+  }
+
+  async saveLocalPreferences(prefs: Partial<{ lang: string; translationId: number | null; tafsirId: number | null; theme: "light" | "dark"; reviewLimit: number; newWordsLimit: number; }>): Promise<void> {
+    if (typeof window !== "undefined") {
+      const current = await this.getLocalPreferences();
+      localStorage.setItem("quranlingo_prefs", JSON.stringify({ ...current, ...prefs }));
+    }
+  }
 }

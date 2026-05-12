@@ -1,11 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+Tamil:wght@400;600;700&display=swap');
-
-@font-face {
-  font-family: 'UthmanicHafs';
-  src: url('https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2') format('woff2'),
-       url('https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.ttf') format('truetype');
-  font-display: swap;
-}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+Tamil:wght@400;600;700&family=Scheherazade+New:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -68,9 +61,13 @@ body {
 }
 
 /* Arabic text */
-.font-quran { font-family: 'UthmanicHafs', serif; }
-.font-amiri { font-family: 'UthmanicHafs', serif; }
-.font-naskh { font-family: 'UthmanicHafs', serif; }
+.font-quran { 
+  font-family: 'Scheherazade New', serif; 
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+.font-amiri { font-family: 'Scheherazade New', serif; }
+.font-naskh { font-family: 'Scheherazade New', serif; }
 .font-tamil { font-family: 'Noto Sans Tamil', sans-serif; }
 
 /* Animations */
