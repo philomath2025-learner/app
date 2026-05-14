@@ -31,6 +31,23 @@ export default function OnboardingScreen({ onLogin, onGuest }: OnboardingScreenP
         Login with Quran Foundation
       </button>
 
+      {/* Google Testing Action */}
+      <button
+        onClick={async () => {
+          const { supabase } = await import("@/lib/supabase");
+          await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+              redirectTo: `${window.location.origin}/auth/google/callback`,
+            },
+          });
+        }}
+        className="w-full max-w-[280px] bg-white hover:bg-gray-50 text-text rounded-[16px] py-4 px-6 text-[16px] font-black uppercase tracking-wide border-b-4 border-gray-300 active:border-b-0 active:translate-y-[4px] transition-all shadow-[0_4px_0_#d1d5db] mb-4 flex items-center justify-center gap-3"
+      >
+        <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
+        Login with Google
+      </button>
+
       {/* Guest Mode Action */}
       <button
         onClick={onGuest}

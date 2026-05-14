@@ -11,7 +11,9 @@ import LessonScreen from "@/components/screens/LessonScreen";
 import OnboardingScreen from "@/components/screens/OnboardingScreen";
 import LedgerScreen from "@/components/screens/LedgerScreen";
 import JuzMapScreen from "@/components/screens/JuzMapScreen";
+import ProfileScreen from "@/components/screens/ProfileScreen";
 import { getStorageProvider } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 function getCookie(name: string) {
   if (typeof document === "undefined") return null;
@@ -26,7 +28,7 @@ export default function App() {
   const [hearts, setHearts] = useState(5);
   const [lastHeartRefill, setLastHeartRefill] = useState<string>(new Date().toISOString());
   const [streakDays] = useState(12);
-  const [displayInitial] = useState("A");
+  const [displayInitial, setDisplayInitial] = useState("A");
   const [lang, setLang] = useState<LangCode>("en");
   const [translationId, setTranslationId] = useState<number | null>(131);  // The Clear Quran (English)
   const [tafsirId, setTafsirId] = useState<number | null>(169);           // Ibn Kathir (English)
@@ -206,6 +208,20 @@ export default function App() {
       if (prefs.theme) setTheme(prefs.theme);
       if (prefs.reviewLimit) setReviewLimit(prefs.reviewLimit);
       if (prefs.newWordsLimit) setNewWordsLimit(prefs.newWordsLimit);
+
+      if (storageMode === "cloud") {
+        try {
+          const res = await fetch("/api/user/profile");
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.display_initial) {
+              setDisplayInitial(data.display_initial);
+            }
+          }
+        } catch (e) {
+          console.error("Failed to load user profile via API", e);
+        }
+      }
     }
     loadUser();
   }, [isLoggedIn, storageMode]);
@@ -336,12 +352,21 @@ export default function App() {
           />
         )}
 
+        {screen === "profile" && (
+          <ProfileScreen 
+            xp={xp}
+            streak={streakDays}
+            theme={theme}
+            onGoHome={() => navigate("home")}
+          />
+        )}
+
         {/* Placeholder screens */}
-        {["profile", "dedup", "glossika"].includes(screen) && (
+        {["dedup", "glossika"].includes(screen) && (
           <div className="flex-1 overflow-y-auto p-3.5">
             <div className="text-center py-20">
               <div className="text-[48px] mb-4">
-                {screen === "profile" ? "👤" : "🔧"}
+                🔧
               </div>
               <h2 className="text-[18px] font-black text-text mb-2">
                 {screen.charAt(0).toUpperCase() + screen.slice(1)} Screen
