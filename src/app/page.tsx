@@ -14,6 +14,7 @@ import JuzMapScreen from "@/components/screens/JuzMapScreen";
 import ProfileScreen from "@/components/screens/ProfileScreen";
 import { getStorageProvider } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
+import { getJuzInfo } from "@/lib/quran";
 
 function getCookie(name: string) {
   if (typeof document === "undefined") return null;
@@ -270,7 +271,7 @@ export default function App() {
           xp={xp}
           hearts={hearts}
           streakDays={streakDays}
-          juzLabel="Juz 1 · Al-Fatiha"
+          juzLabel={getJuzInfo(currentAyah).label}
           displayInitial={displayInitial}
           theme={theme}
           onProfileClick={() => navigate("profile")}

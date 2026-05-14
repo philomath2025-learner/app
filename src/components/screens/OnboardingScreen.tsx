@@ -7,7 +7,7 @@ interface OnboardingScreenProps {
 
 export default function OnboardingScreen({ onLogin, onGuest }: OnboardingScreenProps) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-fade-in">
+    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-fade-in overflow-y-auto min-h-full">
       {/* Mascot/Logo area */}
       <div className="w-32 h-32 mb-8 animate-float">
         <img src="/logo.png" alt="QuranLingo Logo" className="w-full h-full object-contain" />
