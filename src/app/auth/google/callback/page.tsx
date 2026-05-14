@@ -60,11 +60,37 @@ export default function GoogleCallbackPage() {
         if (hash && hash.includes("error_description=")) {
            const errMsg = new URLSearchParams(hash.substring(1)).get("error_description");
            window.location.href = "/?auth_error=" + encodeURIComponent(errMsg || "Unknown Auth Error");
-        } else {
-           window.location.href = "/?auth_error=timeout_no_session";
+           return;
+        } 
+        
+        if (hash && hash.includes("access_token=")) {
+          // Manual extraction fallback
+          try {
+            const params = new URLSearchParams(hash.substring(1));
+            const accessToken = params.get("access_token");
+            if (accessToken) {
+              // The Supabase access_token is a JWT. We can decode the payload manually.
+              const payloadBase64 = accessToken.split(".")[1];
+              const payloadJson = atob(payloadBase64);
+              const payload = JSON.parse(payloadJson);
+              
+              if (payload && payload.sub) {
+                syncSession({
+                  id: payload.sub,
+                  email: payload.email || "",
+                  user_metadata: { full_name: payload.user_metadata?.full_name || "Google Learner" }
+                });
+                return;
+              }
+            }
+          } catch (e) {
+            console.error("Manual token extraction failed", e);
+          }
         }
+
+        window.location.href = "/?auth_error=timeout_no_session";
       }
-    }, 4000);
+    }, 3000);
 
     return () => {
       authListener.subscription.unsubscribe();
