@@ -62,15 +62,28 @@ export default function LedgerScreen({ storageMode, theme }: LedgerScreenProps) 
   }, [ledger, searchQuery]);
 
   const filteredDecisions = useMemo(() => {
-    if (!searchQuery.trim()) return decisions;
-    const query = searchQuery.toLowerCase();
-    return decisions.filter(
-      (entry) =>
-        entry.root?.toLowerCase().includes(query) ||
-        entry.arabic?.toLowerCase().includes(query) ||
-        entry.ayah_key?.includes(query) ||
-        entry.reason?.toLowerCase().includes(query)
-    );
+    let result = decisions;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = decisions.filter(
+        (entry) =>
+          entry.root?.toLowerCase().includes(query) ||
+          entry.arabic?.toLowerCase().includes(query) ||
+          entry.ayah_key?.includes(query) ||
+          entry.reason?.toLowerCase().includes(query)
+      );
+    }
+
+    // Enforce robust DESC sort: newest decided_at first, then word_position DESC
+    return [...result].sort((a, b) => {
+      const timeA = new Date(a.decided_at || 0).getTime();
+      const timeB = new Date(b.decided_at || 0).getTime();
+      if (timeA !== timeB) {
+        return timeB - timeA; // Descending time
+      }
+      // If times are identical (same ayah save), sort by word position descending
+      return (b.word_position || 0) - (a.word_position || 0);
+    });
   }, [decisions, searchQuery]);
 
   const filteredReviews = useMemo(() => {
