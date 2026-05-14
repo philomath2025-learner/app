@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     const tokens = await exchangeCodeForTokens({
       code,
       codeVerifier: verifier,
-      redirectUri: appUrl,
+      redirectUri: `${appUrl}/api/auth/callback`,
       clientId: process.env.QF_CLIENT_ID!,
       clientSecret: process.env.QF_CLIENT_SECRET!,
       oauthEndpoint: process.env.QF_OAUTH_ENDPOINT!,

@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const clientId = process.env.QF_CLIENT_ID!;
   const oauthEndpoint = process.env.QF_OAUTH_ENDPOINT!;
   const appUrl = request.nextUrl.origin;
-  const redirectUri = appUrl;
+  const redirectUri = `${appUrl}/api/auth/callback`;
   const scopes = "openid offline_access user streak goal bookmark reading_session preference";
 
   // Generate PKCE
