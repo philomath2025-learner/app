@@ -25,9 +25,8 @@ export default function OnboardingScreen({ onLogin, onGuest }: OnboardingScreenP
         {[1, 2, 3, 4, 5].map((s) => (
           <div
             key={s}
-            className={`h-2 w-8 rounded-full transition-colors ${
-              s === step ? "bg-green" : s < step ? "bg-green-light" : "bg-gray2"
-            }`}
+            className={`h-2 w-8 rounded-full transition-colors ${s === step ? "bg-green" : s < step ? "bg-green-light" : "bg-gray2"
+              }`}
           />
         ))}
       </div>
@@ -38,7 +37,7 @@ export default function OnboardingScreen({ onLogin, onGuest }: OnboardingScreenP
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-fade-in overflow-y-auto min-h-full">
         {renderProgress()}
-        
+
         <div className="w-48 h-48 mb-8 animate-float mt-auto">
           <img src="/logo.png" alt="QuranLingo Logo" className="w-full h-full object-contain" />
         </div>
@@ -50,7 +49,7 @@ export default function OnboardingScreen({ onLogin, onGuest }: OnboardingScreenP
         </h1>
 
         <p className="text-[15px] text-text-light mb-10 max-w-[280px]">
-          influenced by how our brain works!
+          Inspired by How Human Brain Works!
         </p>
 
         <button
@@ -67,7 +66,7 @@ export default function OnboardingScreen({ onLogin, onGuest }: OnboardingScreenP
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-fade-in overflow-y-auto min-h-full">
         {renderProgress()}
-        
+
         <div className="text-[80px] mb-6 drop-shadow-md mt-auto">🌱</div>
 
         <h2 className="text-[24px] font-black text-text mb-4">What are Roots?</h2>
@@ -90,10 +89,10 @@ export default function OnboardingScreen({ onLogin, onGuest }: OnboardingScreenP
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-fade-in overflow-y-auto min-h-full">
         {renderProgress()}
-        
+
         <div className="text-[80px] mb-6 drop-shadow-md mt-auto">🧠</div>
 
-        <h2 className="text-[24px] font-black text-text mb-4 leading-tight">Learn Once,<br/>Know Everywhere</h2>
+        <h2 className="text-[24px] font-black text-text mb-4 leading-tight">Learn Once,<br />Know Everywhere</h2>
 
         <p className="text-[16px] text-text-light mb-10 max-w-[280px] leading-relaxed">
           Our smart Deduplication Engine ensures you only learn a root the first time it appears. No redundant learning.
@@ -113,7 +112,7 @@ export default function OnboardingScreen({ onLogin, onGuest }: OnboardingScreenP
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-fade-in overflow-y-auto min-h-full">
         {renderProgress()}
-        
+
         <div className="flex gap-4 mb-6 drop-shadow-md text-[60px] mt-auto">
           <span>❤️</span>
           <span>🔥</span>
