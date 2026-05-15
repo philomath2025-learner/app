@@ -95,6 +95,9 @@ export async function GET(request: NextRequest) {
           ref: entry.first_ayah_key,
           hint: entry.pos,
           xp: 10,
+          srs_interval: entry.srs_interval,
+          srs_repetitions: entry.srs_repetitions,
+          srs_ease_factor: entry.srs_ease_factor,
         };
       })
     );

@@ -136,9 +136,31 @@ export class CloudStorageProvider implements StorageProvider {
       if (!res.ok) return { xp_earned: 0, completed: false };
       const data = await res.json();
       return { xp_earned: data.xp_earned || 0, completed: !!data.completed };
-    } catch (err) {
+    } catch {
       return { xp_earned: 0, completed: false };
     }
+  }
+
+  async getActivityHistory(days: number): Promise<{ date: string; xp_earned: number }[]> {
+    try {
+      const res = await fetch(`/api/user/activity?days=${days}`);
+      if (!res.ok) return this._getEmptyHistory(days);
+      const data = await res.json();
+      return data.history || this._getEmptyHistory(days);
+    } catch {
+      return this._getEmptyHistory(days);
+    }
+  }
+
+  private _getEmptyHistory(days: number): { date: string; xp_earned: number }[] {
+    const history: { date: string; xp_earned: number }[] = [];
+    const today = new Date();
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      history.push({ date: d.toISOString().split('T')[0], xp_earned: 0 });
+    }
+    return history;
   }
 
   async updateDailyGoal(xp: number, completed: boolean = false): Promise<void> {

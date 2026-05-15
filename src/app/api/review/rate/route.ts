@@ -86,6 +86,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Log the review to srs_reviews for history/analytics
+    // @ts-ignore
+    const { error: insertError } = await supabaseAdmin.from("srs_reviews").insert({
+      user_id: profile.id,
+      ledger_id: typedEntry.id,
+      rating: rating,
+      prev_interval: typedEntry.srs_interval,
+      new_interval: sm2Result.interval,
+      prev_ease: typedEntry.srs_ease_factor,
+      new_ease: sm2Result.easeFactor,
+      xp_awarded: rating === "again" ? 0 : 5,
+      reviewed_at: new Date().toISOString()
+    });
+
+    if (insertError) {
+      console.error("Failed to insert into srs_reviews:", insertError);
+    }
+
     return NextResponse.json({ success: true, sm2Result });
   } catch (error: any) {
     console.error("Review rate error:", error);

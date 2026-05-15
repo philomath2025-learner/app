@@ -87,15 +87,27 @@ export default function LedgerScreen({ storageMode, theme }: LedgerScreenProps) 
   }, [decisions, searchQuery]);
 
   const filteredReviews = useMemo(() => {
-    if (!searchQuery.trim()) return dueReviews;
-    const query = searchQuery.toLowerCase();
-    return dueReviews.filter(
-      (entry) =>
-        entry.root?.toLowerCase().includes(query) ||
-        entry.arabic?.toLowerCase().includes(query) ||
-        entry.meaning?.toLowerCase().includes(query)
-    );
-  }, [dueReviews, searchQuery]);
+    let result = ledger;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (entry) =>
+          entry.root?.toLowerCase().includes(query) ||
+          entry.first_surface_form?.toLowerCase().includes(query) ||
+          entry.translation_en?.toLowerCase().includes(query)
+      );
+    }
+    
+    // Filter to only items due within 3 days
+    return result
+      .map(entry => {
+        const nextDate = new Date(entry.srs_next_review || entry.next_review || new Date().toISOString());
+        const daysUntil = Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 3600 * 24));
+        return { entry, daysUntil };
+      })
+      .filter(item => item.daysUntil <= 3)
+      .sort((a, b) => a.daysUntil - b.daysUntil);
+  }, [ledger, searchQuery]);
 
   // Helper: SRS level label
   function getLevelInfo(interval: number | undefined) {
@@ -356,40 +368,56 @@ export default function LedgerScreen({ storageMode, theme }: LedgerScreenProps) 
                 {filteredReviews.length === 0 ? (
                   <div className={`text-center py-10 ${isDark ? 'text-[#A1B2C3]' : 'text-text-light'}`}>
                     <div className="text-[40px] mb-2">🎉</div>
-                    No words currently due for review!
+                    No words currently due in the next 3 days!
                   </div>
-                ) : filteredReviews.map((entry) => (
-                  <div key={entry.id} className={`rounded-[20px] p-4 border-2 transition-all hover:-translate-y-1 ${
-                    isDark ? 'bg-[#152336] border-[#1E314A] shadow-md' : 'bg-white border-gray2 shadow-sm'
-                  }`}>
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex flex-col">
-                        <span className={`text-[28px] font-quran font-bold leading-none mb-0.5 ${isDark ? 'text-[#60E0C1]' : 'text-blue-dark'}`}>
-                          {entry.arabic}
+                ) : filteredReviews.map(({ entry, daysUntil }) => {
+                  let reviewText = "";
+                  let reviewColor = "";
+                  
+                  if (daysUntil <= 0) {
+                    reviewText = "Review Now";
+                    reviewColor = isDark ? "bg-[#3D1A1A] text-[#FF6B6B]" : "bg-red-light text-red-dark";
+                  } else if (daysUntil === 1) {
+                    reviewText = "Due Tomorrow";
+                    reviewColor = isDark ? "bg-[#3D2E1A] text-[#FFB84D]" : "bg-orange-light text-orange-dark";
+                  } else {
+                    reviewText = `Due in ${daysUntil} days`;
+                    reviewColor = isDark ? "bg-[#1A3D24] text-[#4DFF88]" : "bg-green-light text-green-dark";
+                  }
+
+                  return (
+                    <div key={entry.id || entry.root} className={`rounded-[20px] p-4 border-2 transition-all hover:-translate-y-1 ${
+                      isDark ? 'bg-[#152336] border-[#1E314A] shadow-md' : 'bg-white border-gray2 shadow-sm'
+                    }`}>
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex flex-col">
+                          <span className={`text-[28px] font-quran font-bold leading-none mb-0.5 ${isDark ? 'text-[#60E0C1]' : 'text-blue-dark'}`}>
+                            {entry.first_surface_form || entry.lemma}
+                          </span>
+                        </div>
+                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${reviewColor}`}>
+                          {reviewText}
                         </span>
                       </div>
-                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${isDark ? "bg-[#3D1A1A] text-[#FF6B6B]" : "bg-red-light text-red-dark"}`}>
-                        Review Now
-                      </span>
-                    </div>
-                    
-                    <div className={`text-[13px] font-semibold mb-2 ${isDark ? 'text-white' : 'text-text'}`}>
-                      {entry.meaning}
-                    </div>
+                      
+                      <div className={`text-[13px] font-semibold mb-2 ${isDark ? 'text-white' : 'text-text'}`}>
+                        {entry.translation_en}
+                      </div>
 
-                    <div className={`flex items-center gap-2 text-[11px] font-bold ${isDark ? 'text-[#A1B2C3]' : 'text-text-light'}`}>
-                      <span className={`px-2 py-0.5 rounded-md ${isDark ? 'bg-[#202E45]' : 'bg-gray3'}`}>
-                        Root: {entry.root}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded-md ${isDark ? 'bg-[#202E45]' : 'bg-gray3'}`}>
-                        {entry.hint}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded-md ${isDark ? 'bg-[#202E45]' : 'bg-gray3'}`}>
-                        From {entry.ref}
-                      </span>
+                      <div className={`flex items-center gap-2 text-[11px] font-bold ${isDark ? 'text-[#A1B2C3]' : 'text-text-light'}`}>
+                        <span className={`px-2 py-0.5 rounded-md ${isDark ? 'bg-[#202E45]' : 'bg-gray3'}`}>
+                          Root: {entry.root}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-md ${isDark ? 'bg-[#202E45]' : 'bg-gray3'}`}>
+                          {entry.pos}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-md ${isDark ? 'bg-[#202E45]' : 'bg-gray3'}`}>
+                          From {entry.first_ayah_key}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </>
             )}
           </div>
