@@ -194,23 +194,64 @@ export class CloudStorageProvider implements StorageProvider {
 
   async getLocalPreferences(): Promise<{ lang: string; translationId: number | null; tafsirId: number | null; theme: "light" | "dark"; reviewLimit: number; newWordsLimit: number; }> {
     const defaults = { lang: "en", translationId: 131, tafsirId: 169, theme: "light" as const, reviewLimit: 20, newWordsLimit: 10 };
-    if (typeof window !== "undefined") {
-      const data = localStorage.getItem("quranlingo_prefs");
-      if (data) {
-        try {
-          return { ...defaults, ...JSON.parse(data) };
-        } catch (e) {
-          console.error("Failed to parse local preferences", e);
+    let prefs = { ...defaults };
+    
+    // 1. Fetch from cloud
+    try {
+      const res = await fetch("/api/user/preferences");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.preferences) {
+          prefs = { ...prefs, ...data.preferences };
         }
       }
+    } catch {
+      console.error("Failed to fetch cloud preferences");
     }
-    return defaults;
+
+    // 2. Load theme from localStorage
+    if (typeof window !== "undefined") {
+      const localData = localStorage.getItem("quranlingo_prefs");
+      if (localData) {
+        try {
+          const parsed = JSON.parse(localData);
+          if (parsed.theme) prefs.theme = parsed.theme;
+        } catch (e) {}
+      }
+    }
+
+    return prefs;
   }
 
   async saveLocalPreferences(prefs: Partial<{ lang: string; translationId: number | null; tafsirId: number | null; theme: "light" | "dark"; reviewLimit: number; newWordsLimit: number; }>): Promise<void> {
+    // 1. Save theme to local storage
     if (typeof window !== "undefined") {
-      const current = await this.getLocalPreferences();
-      localStorage.setItem("quranlingo_prefs", JSON.stringify({ ...current, ...prefs }));
+      const localData = localStorage.getItem("quranlingo_prefs");
+      let currentLocal: Record<string, unknown> = {};
+      if (localData) {
+        try { currentLocal = JSON.parse(localData); } catch {}
+      }
+      
+      const newLocal = { ...currentLocal };
+      if (prefs.theme) newLocal.theme = prefs.theme;
+      // We can also save everything locally as a fallback
+      localStorage.setItem("quranlingo_prefs", JSON.stringify({ ...newLocal, ...prefs }));
+    }
+
+    // 2. Save everything else to cloud
+    const cloudPrefs = { ...prefs };
+    delete cloudPrefs.theme;
+
+    if (Object.keys(cloudPrefs).length > 0) {
+      try {
+        await fetch("/api/user/preferences", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(cloudPrefs),
+        });
+      } catch {
+        console.error("Failed to save cloud preferences");
+      }
     }
   }
 }
