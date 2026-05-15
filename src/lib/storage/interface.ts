@@ -20,6 +20,9 @@ export interface ReviewCard {
   ref: string; // ayah_key
   hint: string;
   xp: number;
+  srs_interval?: number;
+  srs_repetitions?: number;
+  srs_ease_factor?: number;
 }
 
 export interface VocabularyLedgerEntry {
@@ -99,6 +102,9 @@ export interface StorageProvider {
 
   /** Get daily goal progress for today */
   getDailyGoal(): Promise<{ xp_earned: number; completed: boolean }>;
+
+  /** Get activity history for the past N days */
+  getActivityHistory(days: number): Promise<{ date: string; xp_earned: number }[]>;
 
   /** Update daily goal progress */
   updateDailyGoal(xp_earned: number, completed?: boolean): Promise<void>;

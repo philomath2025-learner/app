@@ -358,6 +358,7 @@ export default function App() {
             xp={xp}
             streak={streakDays}
             theme={theme}
+            storageMode={storageMode}
             onGoHome={() => navigate("home")}
           />
         )}

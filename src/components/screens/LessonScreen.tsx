@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getStorageProvider } from "@/lib/storage";
 import { runDedupEngine, DedupedWord } from "@/lib/dedup-engine";
+import { trackEvent } from "@/lib/analytics";
 
 interface WordMorphology {
   root: string;
@@ -175,6 +176,13 @@ export default function LessonScreen({ ayahKey, lang, translationId, tafsirId, t
         const xpAmount = word.status === "new" ? 10 : 5;
         await provider.updateXP(xpAmount);
         onAwardXP(xpAmount, `+${xpAmount} XP`);
+
+        trackEvent("word_learned", { 
+          root, 
+          status: word.status, 
+          ayah: ayahKey, 
+          xp: xpAmount 
+        });
       }
       setLearnedPositions((prev) => new Set(prev).add(word.position));
     }

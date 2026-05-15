@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect } from "react";
 import { T } from "@/lib/i18n";
 import { getStorageProvider } from "@/lib/storage";
 import type { ReviewCard } from "@/lib/storage/interface";
+import { trackEvent } from "@/lib/analytics";
+import { calculateSM2 } from "@/lib/srs";
 
 interface ReviewScreenProps {
   storageMode: "guest" | "cloud";
@@ -20,7 +22,6 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [correct, setCorrect] = useState(0);
-  const [wrong, setWrong] = useState(0);
   const [done, setDone] = useState(false);
   const [mistakeTracker, setMistakeTracker] = useState<Record<string, number>>({});
 
@@ -52,7 +53,6 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
       }
 
       if (rating === "again") {
-        setWrong((w) => w + 1);
         const currentMistakes = (mistakeTracker[card.id] || 0) + 1;
         setMistakeTracker(prev => ({ ...prev, [card.id]: currentMistakes }));
 
@@ -67,8 +67,18 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
         setCards(updatedCards);
       }
 
+      if (rating === "hard") {
+        // Re-insert further down the session (e.g. 15 cards away) to reinforce within ~10 mins
+        const updatedCards = [...cards];
+        const nextPos = Math.min(idx + 15, updatedCards.length);
+        updatedCards.splice(nextPos, 0, card);
+        setCards(updatedCards);
+      }
+
       const provider = getStorageProvider(storageMode);
       provider.submitReview(card.id, rating).catch(e => console.error("Failed to submit review", e));
+
+      trackEvent("review_rated", { root: card.id, rating, isCorrect: rating === "good" || rating === "easy" });
 
       if (idx + 1 >= cards.length) {
         setDone(true);
@@ -89,7 +99,7 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
       <div className="flex-1 overflow-y-auto p-3.5">
         <div className="text-center py-20">
           <div className="text-[48px] mb-4">🏆</div>
-          <h2 className="text-[18px] font-black text-text mb-2">You're all caught up!</h2>
+          <h2 className="text-[18px] font-black text-text mb-2">You&apos;re all caught up!</h2>
           <p className="text-[13px] text-text-light mb-6">No words are due for review right now. Keep learning new words or come back later!</p>
           <button onClick={onGoHome} className="cta-btn mt-6 max-w-[200px] mx-auto">
             Back to Home
@@ -209,7 +219,7 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
                   {/* Semantic Translation */}
                   {card.ayahTranslation && (
                     <div className={`p-4 rounded-xl italic text-[14px] leading-relaxed text-center border transition-colors ${isDark ? 'bg-[#152336] text-[#A1B2C3] border-[#1E314A]' : 'bg-white/50 text-text border-gray2/30'}`}>
-                      "{card.ayahTranslation}"
+                      &quot;{card.ayahTranslation}&quot;
                     </div>
                   )}
                 </div>
@@ -221,7 +231,7 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
                        {card.ayah}
                      </div>
                      <div className={`text-[12px] font-bold text-center border-t pt-3 italic transition-colors ${isDark ? 'text-[#50728D] border-[#1E314A]' : 'text-text-light border-gray2/30'}`}>
-                       "{card.ayahTranslation || 'No translation available'}"
+                       &quot;{card.ayahTranslation || 'No translation available'}&quot;
                      </div>
                    </div>
                  )
@@ -248,12 +258,25 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
               <span className={`h-px w-8 ${isDark ? 'bg-[#1E314A]' : 'bg-gray2'}`}></span>
             </div>
             <div className="grid grid-cols-4 gap-2">
-              {[
-                { key: "again" as const, emoji: "🔁", label: T("again"), color: "bg-red border-red-900 shadow-[0_4px_0_#991B1B]", interval: "< 1m" },
-                { key: "hard" as const, emoji: "😓", label: T("hard"), color: "bg-orange border-orange-900 shadow-[0_4px_0_#9A3412]", interval: "10m" },
-                { key: "good" as const, emoji: "✓", label: T("good"), color: "bg-green border-green-900 shadow-[0_4px_0_#166534]", interval: "1d" },
-                { key: "easy" as const, emoji: "★", label: T("easy"), color: "bg-blue border-blue-900 shadow-[0_4px_0_#075985]", interval: "4d" },
-              ].map((btn) => (
+              {(() => {
+                const card = cards[idx];
+                const prevInt = card?.srs_interval || 1;
+                const prevRep = card?.srs_repetitions || 1;
+                const prevEase = card?.srs_ease_factor || 2.5;
+
+                const getDynamicInterval = (rating: "good" | "easy") => {
+                  const result = calculateSM2(rating, prevInt, prevRep, prevEase);
+                  const d = result.interval;
+                  if (d === 1) return "1 day";
+                  return `${d} days`;
+                };
+
+                return [
+                  { key: "again" as const, emoji: "🔁", label: T("again"), color: "bg-red border-red-900 shadow-[0_4px_0_#991B1B]", interval: "< 1 min" },
+                  { key: "hard" as const, emoji: "😓", label: T("hard"), color: "bg-orange border-orange-900 shadow-[0_4px_0_#9A3412]", interval: "10 min" },
+                  { key: "good" as const, emoji: "✓", label: T("good"), color: "bg-green border-green-900 shadow-[0_4px_0_#166534]", interval: getDynamicInterval("good") },
+                  { key: "easy" as const, emoji: "★", label: T("easy"), color: "bg-blue border-blue-900 shadow-[0_4px_0_#075985]", interval: getDynamicInterval("easy") },
+                ].map((btn) => (
                 <button
                   key={btn.key}
                   onClick={() => rate(btn.key)}
@@ -263,7 +286,7 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
                   <div className="text-[10px] font-black uppercase tracking-tight">{btn.label}</div>
                   <div className="text-[9px] font-bold opacity-80 mt-0.5">{btn.interval}</div>
                 </button>
-              ))}
+              ))})()}
             </div>
           </div>
         )}

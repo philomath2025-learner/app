@@ -196,6 +196,30 @@ export class LocalStorageProvider implements StorageProvider {
     return { xp_earned: 0, completed: false };
   }
 
+  async getActivityHistory(days: number): Promise<{ date: string; xp_earned: number }[]> {
+    const history: { date: string; xp_earned: number }[] = [];
+    if (typeof window !== "undefined") {
+      const today = new Date();
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const data = localStorage.getItem(`quranlingo_goal_${dateStr}`);
+        const parsed = data ? JSON.parse(data) : { xp_earned: 0 };
+        history.push({ date: dateStr, xp_earned: parsed.xp_earned || 0 });
+      }
+    } else {
+      // Server-side / fallback
+      const today = new Date();
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        history.push({ date: d.toISOString().split('T')[0], xp_earned: 0 });
+      }
+    }
+    return history;
+  }
+
   async updateDailyGoal(xp: number, completed: boolean = false): Promise<void> {
     if (typeof window !== "undefined") {
       const today = new Date().toISOString().split('T')[0];
@@ -234,6 +258,9 @@ export class LocalStorageProvider implements StorageProvider {
           ref: e.first_ayah_key || e.first_seen_ayah || "",
           hint: e.pos,
           xp: 10,
+          srs_interval: e.srs_interval || e.interval,
+          srs_repetitions: e.srs_repetitions || e.repetition,
+          srs_ease_factor: e.srs_ease_factor || e.ease_factor,
         }));
         
         resolve(cards);

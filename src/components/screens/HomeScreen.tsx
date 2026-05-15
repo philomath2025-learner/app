@@ -34,8 +34,12 @@ export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah,
       const knownRoots = await provider.getKnownRoots();
       setLearnedCount(knownRoots.size);
 
-      // Get due reviews for the preview cards
-      const due = await provider.getDueReviews(3);
+      // Get user preferences for review limit
+      const prefs = await provider.getLocalPreferences();
+      const reviewLimit = prefs.reviewLimit || 20;
+
+      // Get due reviews for the preview cards based on preferred limit
+      const due = await provider.getDueReviews(reviewLimit);
       setDueCards(due);
     }
     loadHomeData();
