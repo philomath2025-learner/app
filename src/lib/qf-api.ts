@@ -9,6 +9,7 @@ export async function getQFHeaders(): Promise<Record<string, string> | null> {
   if (!accessToken || !clientId) return null;
 
   return {
+    "Authorization": `Bearer ${accessToken}`,
     "x-auth-token": accessToken,
     "x-client-id": clientId,
     "Content-Type": "application/json",
