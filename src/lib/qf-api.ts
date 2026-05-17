@@ -133,3 +133,16 @@ export async function createRoom(name: string, description: string = "", isPubli
 export async function getRoomMembers(roomId: string | number) {
   return qfRequest(`/quran-reflect/v1/rooms/${roomId}/members`);
 }
+
+/** Search for public groups */
+export async function searchRooms(query: string, page = 1, limit = 10, roomType = 'GROUP') {
+  const q = encodeURIComponent(query);
+  return qfRequest(`/quran-reflect/v1/rooms/groups/search?q=${q}&page=${page}&limit=${limit}&roomType=${roomType}`);
+}
+
+/** Join a specific group */
+export async function joinRoom(roomId: string | number) {
+  return qfRequest(`/quran-reflect/v1/rooms/groups/${roomId}/join`, {
+    method: "POST"
+  });
+}

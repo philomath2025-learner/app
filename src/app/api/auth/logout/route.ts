@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
     // Clear both tokens
     cookieStore.delete("sb_custom_token");
     cookieStore.delete("qf_logged_in");
+    cookieStore.delete("qf_access_token");
 
     // Clear any PKCE flow cookies just in case
     cookieStore.delete("qf_pkce_verifier");

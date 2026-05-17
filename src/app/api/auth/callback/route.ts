@@ -116,6 +116,14 @@ export async function GET(request: NextRequest) {
       path: "/",
     });
 
+    cookieStore.set("qf_access_token", tokens.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: tokens.expires_in || 60 * 60 * 24 * 7,
+      path: "/",
+    });
+
     return NextResponse.redirect(`${appUrl}/?auth_success=true`);
   } catch (err: any) {
     console.error("AUTH_CALLBACK_ERROR_DETAILS:", {
