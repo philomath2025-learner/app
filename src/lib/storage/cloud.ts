@@ -8,7 +8,7 @@ export class CloudStorageProvider implements StorageProvider {
 
   async getKnownRoots(): Promise<Map<string, VocabularyLedgerEntry>> {
     try {
-      const res = await fetch("/api/lesson/ledger");
+      const res = await fetch("/api/lesson/ledger", { cache: "no-store" });
       if (!res.ok) return new Map();
       const data = await res.json();
       
@@ -53,7 +53,7 @@ export class CloudStorageProvider implements StorageProvider {
 
   async getDecisions(): Promise<import("./interface").VocabularyDecision[]> {
     try {
-      const res = await fetch("/api/lesson/decisions");
+      const res = await fetch("/api/lesson/decisions", { cache: "no-store" });
       if (!res.ok) return [];
       const data = await res.json();
       return data.decisions || [];
@@ -72,7 +72,7 @@ export class CloudStorageProvider implements StorageProvider {
 
   async getXP(): Promise<number> {
     try {
-      const res = await fetch("/api/user/progress");
+      const res = await fetch("/api/user/progress", { cache: "no-store" });
       if (!res.ok) return 0;
       const data = await res.json();
       return data.xp || 0;
@@ -83,7 +83,7 @@ export class CloudStorageProvider implements StorageProvider {
 
   async getHearts(): Promise<{ count: number; lastRefill: string }> {
     try {
-      const res = await fetch("/api/user/progress");
+      const res = await fetch("/api/user/progress", { cache: "no-store" });
       if (!res.ok) return { count: 5, lastRefill: new Date().toISOString() };
       const data = await res.json();
       return {
@@ -109,7 +109,7 @@ export class CloudStorageProvider implements StorageProvider {
 
   async getCurrentAyah(): Promise<string> {
     try {
-      const res = await fetch("/api/user/progress");
+      const res = await fetch("/api/user/progress", { cache: "no-store" });
       if (!res.ok) return "1:1";
       const data = await res.json();
       return data.currentAyah || "1:1";
@@ -132,7 +132,7 @@ export class CloudStorageProvider implements StorageProvider {
 
   async getDailyGoal(): Promise<{ xp_earned: number; completed: boolean }> {
     try {
-      const res = await fetch("/api/user/goal");
+      const res = await fetch("/api/user/goal", { cache: "no-store" });
       if (!res.ok) return { xp_earned: 0, completed: false };
       const data = await res.json();
       return { xp_earned: data.xp_earned || 0, completed: !!data.completed };
@@ -143,7 +143,7 @@ export class CloudStorageProvider implements StorageProvider {
 
   async getActivityHistory(days: number): Promise<{ date: string; xp_earned: number }[]> {
     try {
-      const res = await fetch(`/api/user/activity?days=${days}`);
+      const res = await fetch(`/api/user/activity?days=${days}`, { cache: "no-store" });
       if (!res.ok) return this._getEmptyHistory(days);
       const data = await res.json();
       return data.history || this._getEmptyHistory(days);
@@ -177,7 +177,7 @@ export class CloudStorageProvider implements StorageProvider {
 
   async getDueReviews(limit: number = 20): Promise<ReviewCard[]> {
     try {
-      const res = await fetch(`/api/review/due?limit=${limit}`);
+      const res = await fetch(`/api/review/due?limit=${limit}`, { cache: "no-store" });
       if (!res.ok) return [];
       const data = await res.json();
       return data.cards || [];
@@ -187,12 +187,12 @@ export class CloudStorageProvider implements StorageProvider {
     }
   }
 
-  async submitReview(root: string, rating: "again" | "hard" | "good" | "easy"): Promise<void> {
+  async submitReview(root: string, rating: "again" | "hard" | "good" | "easy", timeSpentSeconds?: number): Promise<void> {
     try {
       await fetch("/api/review/rate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ root, rating }),
+        body: JSON.stringify({ root, rating, timeSpentSeconds }),
       });
     } catch (err) {
       console.error("Failed to submit review to cloud:", err);
@@ -220,7 +220,7 @@ export class CloudStorageProvider implements StorageProvider {
     
     // 1. Fetch from cloud
     try {
-      const res = await fetch("/api/user/preferences");
+      const res = await fetch("/api/user/preferences", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         if (data.preferences) {

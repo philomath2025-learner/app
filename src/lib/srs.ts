@@ -49,6 +49,12 @@ export function calculateSM2(
     } else {
       interval = Math.round(prevInterval * prevEaseFactor);
     }
+
+    // Easy Bonus: If the user finds it easy, give an extra jump in interval immediately
+    if (rating === "easy") {
+      interval = Math.max(interval + 1, Math.ceil(interval * 1.3));
+    }
+
     repetition = prevRepetition + 1;
   }
 

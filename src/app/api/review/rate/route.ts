@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { decodeJwt } from "jose";
 import { supabaseAdmin } from "@/lib/supabase";
 import { calculateSM2, ReviewRating, addDays } from "@/lib/srs";
+import { syncActivityDay } from "@/lib/qf-api";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
     if (!profile) return NextResponse.json({ error: "Unauthorized profile" }, { status: 401 });
 
     const body = await request.json();
-    const { root, rating } = body;
+    const { root, rating, timeSpentSeconds } = body;
 
     if (!root || !rating) {
       return NextResponse.json({ error: "Missing root or rating" }, { status: 400 });
@@ -102,6 +103,17 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error("Failed to insert into srs_reviews:", insertError);
+    }
+
+    // Sync activity to Quran Foundation
+    if (timeSpentSeconds && timeSpentSeconds > 0) {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        await syncActivityDay(timeSpentSeconds, today);
+      } catch (err) {
+        console.error("Failed to sync activity to QF:", err);
+        // Don't fail the request if sync fails
+      }
     }
 
     return NextResponse.json({ success: true, sm2Result });

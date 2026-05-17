@@ -113,7 +113,7 @@ export interface StorageProvider {
   getDueReviews(limit?: number): Promise<ReviewCard[]>;
 
   /** Submit SM-2 review rating */
-  submitReview(root: string, rating: "again" | "hard" | "good" | "easy"): Promise<void>;
+  submitReview(root: string, rating: "again" | "hard" | "good" | "easy", timeSpentSeconds?: number): Promise<void>;
 
   /** Get user preferences */
   getLocalPreferences(): Promise<{ lang: string; translationId: number | null; tafsirId: number | null; theme: "light" | "dark"; reviewLimit: number; newWordsLimit: number; }>;

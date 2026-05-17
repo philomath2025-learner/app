@@ -2,17 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { getStorageProvider } from "@/lib/storage";
-import { getLevel, getNextLevel } from "@/lib/constants";
+import { getLevel, getNextLevel, getAbsoluteAyah } from "@/lib/constants";
 
 interface ProfileScreenProps {
   xp: number;
   streak: number;
   theme: "light" | "dark";
   storageMode: "guest" | "cloud";
+  currentAyah: string;
   onGoHome: () => void;
 }
 
-export default function ProfileScreen({ xp, streak, theme, storageMode, onGoHome }: ProfileScreenProps) {
+export default function ProfileScreen({ xp, streak, theme, storageMode, currentAyah, onGoHome }: ProfileScreenProps) {
   const isDark = theme === "dark";
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState<{ date: string; xp_earned: number }[]>([]);
@@ -46,7 +47,7 @@ export default function ProfileScreen({ xp, streak, theme, storageMode, onGoHome
             display_initial: "G",
             created_at: new Date().toISOString(),
             total_roots_learned: 0, // This could be fetched from local ledger if needed
-            level_name: getLevel(xp).name,
+            level_name: getLevel(getAbsoluteAyah(currentAyah)).name,
           });
         }
       } catch (err) {
@@ -76,13 +77,14 @@ export default function ProfileScreen({ xp, streak, theme, storageMode, onGoHome
   const joinDate = profile ? new Date(profile.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long' }) : "";
   
   // Progress Bar Calculations
-  const currentLevel = getLevel(xp);
-  const nextLevel = getNextLevel(xp);
+  const absAyahs = getAbsoluteAyah(currentAyah);
+  const currentLevel = getLevel(absAyahs);
+  const nextLevel = getNextLevel(absAyahs);
   let progressPercent = 100;
   if (nextLevel) {
-    const range = nextLevel.minXP - currentLevel.minXP;
-    const current = xp - currentLevel.minXP;
-    progressPercent = Math.max(0, Math.min(100, Math.round((current / range) * 100)));
+    const range = nextLevel.minAyahs - currentLevel.minAyahs;
+    const currentProgress = absAyahs - currentLevel.minAyahs;
+    progressPercent = Math.max(0, Math.min(100, Math.round((currentProgress / range) * 100)));
   }
 
   return (
@@ -145,7 +147,7 @@ export default function ProfileScreen({ xp, streak, theme, storageMode, onGoHome
                    />
                  </div>
                  <p className="text-[12px] text-center mt-2 font-bold text-text-light">
-                   {xp} / {nextLevel.minXP} XP
+                   {absAyahs} / {nextLevel.minAyahs} Ayahs
                  </p>
                </>
              ) : (

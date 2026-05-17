@@ -65,3 +65,71 @@ export async function qfPatch(path: string, body: unknown) {
   }
   return res.json();
 }
+
+// ── Specific API Helpers ──
+
+const QF_BASE_API = "https://apis.quran.foundation";
+
+/** Proxy a request with dynamic base */
+async function qfRequest(path: string, options: RequestInit = {}) {
+  const headers = await getQFHeaders();
+  if (!headers) throw new Error("Not authenticated with QF");
+
+  // Add x-timezone for streak/activity calculations
+  const tzHeaders = {
+    ...headers,
+    "x-timezone": Intl.DateTimeFormat().resolvedOptions().timeZone,
+  };
+
+  const res = await fetch(`${QF_BASE_API}${path}`, {
+    ...options,
+    headers: tzHeaders,
+    cache: "no-store",
+  });
+  
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`QF API ${path} failed: ${res.status} — ${err}`);
+  }
+  return res.json();
+}
+
+/** Sync activity to QF */
+export async function syncActivityDay(seconds: number, date: string) {
+  return qfRequest(`/v1/activity-days`, {
+    method: "POST",
+    body: JSON.stringify({
+      date,
+      seconds,
+      type: "QURAN",
+    }),
+  });
+}
+
+/** Get official QF streak */
+export async function getCurrentStreak() {
+  return qfRequest(`/v1/streaks/current-streak-days?type=QURAN`);
+}
+
+/** Get joined rooms for competitions */
+export async function getJoinedRooms() {
+  // Quran Reflect Rooms API
+  return qfRequest(`/quran-reflect/v1/rooms/joined-rooms`);
+}
+
+/** Create a new competition room */
+export async function createRoom(name: string, description: string = "", isPublic: boolean = false) {
+  return qfRequest(`/quran-reflect/v1/rooms/groups`, {
+    method: "POST",
+    body: JSON.stringify({
+      name,
+      description,
+      is_public: isPublic,
+    }),
+  });
+}
+
+/** Get members of a room (Leaderboard) */
+export async function getRoomMembers(roomId: string | number) {
+  return qfRequest(`/quran-reflect/v1/rooms/${roomId}/members`);
+}

@@ -12,6 +12,7 @@ import OnboardingScreen from "@/components/screens/OnboardingScreen";
 import LedgerScreen from "@/components/screens/LedgerScreen";
 import JuzMapScreen from "@/components/screens/JuzMapScreen";
 import ProfileScreen from "@/components/screens/ProfileScreen";
+import RoomsScreen from "@/components/screens/RoomsScreen";
 import { getStorageProvider } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 import { getJuzInfo } from "@/lib/quran";
@@ -28,7 +29,7 @@ export default function App() {
   const [dailyXp, setDailyXp] = useState(0);
   const [hearts, setHearts] = useState(5);
   const [lastHeartRefill, setLastHeartRefill] = useState<string>(new Date().toISOString());
-  const [streakDays] = useState(12);
+  const [streakDays, setStreakDays] = useState(0);
   const [displayInitial, setDisplayInitial] = useState("A");
   const [lang, setLang] = useState<LangCode>("en");
   const [translationId, setTranslationId] = useState<number | null>(131);  // The Clear Quran (English)
@@ -222,6 +223,18 @@ export default function App() {
         } catch (e) {
           console.error("Failed to load user profile via API", e);
         }
+
+        try {
+          const res = await fetch("/api/user/streak");
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.streak !== undefined) {
+              setStreakDays(data.streak);
+            }
+          }
+        } catch (e) {
+          console.error("Failed to load QF streak via API", e);
+        }
       }
     }
     loadUser();
@@ -275,6 +288,7 @@ export default function App() {
           displayInitial={displayInitial}
           theme={theme}
           onProfileClick={() => navigate("profile")}
+          currentAyah={currentAyah}
         />
 
         {/* XP Popup */}
@@ -296,6 +310,7 @@ export default function App() {
             theme={theme}
             onStartReview={() => navigate("quiz")}
             onStartLesson={startLesson}
+            onNavigateToRooms={() => navigate("rooms")}
           />
         )}
 
@@ -344,6 +359,10 @@ export default function App() {
           <LedgerScreen storageMode={storageMode} theme={theme} />
         )}
 
+        {screen === "rooms" && (
+          <RoomsScreen storageMode={storageMode} theme={theme} />
+        )}
+
         {screen === "map" && (
           <JuzMapScreen
             currentAyah={currentAyah}
@@ -359,6 +378,7 @@ export default function App() {
             streak={streakDays}
             theme={theme}
             storageMode={storageMode}
+            currentAyah={currentAyah}
             onGoHome={() => navigate("home")}
           />
         )}
