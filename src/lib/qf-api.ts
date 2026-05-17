@@ -69,7 +69,9 @@ export async function qfPatch(path: string, body: unknown) {
 
 // ── Specific API Helpers ──
 
-const QF_BASE_API = "https://apis.quran.foundation";
+const QF_BASE_API = process.env.QF_API_BASE 
+  ? process.env.QF_API_BASE.replace('/auth/v1', '') 
+  : "https://apis.quran.foundation";
 
 /** Proxy a request with dynamic base */
 async function qfRequest(path: string, options: RequestInit = {}) {
