@@ -1,6 +1,6 @@
 "use client";
 
-import { getLevel, getNextLevel } from "@/lib/constants";
+import { getLevel, getNextLevel, getAbsoluteAyah } from "@/lib/constants";
 
 interface TopBarProps {
   xp: number;
@@ -10,15 +10,17 @@ interface TopBarProps {
   displayInitial: string;
   theme: "light" | "dark";
   onProfileClick: () => void;
+  currentAyah?: string; // Make optional for backwards compatibility
 }
 
-export default function TopBar({ xp, hearts, streakDays, juzLabel, displayInitial, theme, onProfileClick }: TopBarProps) {
+export default function TopBar({ xp, hearts, streakDays, juzLabel, displayInitial, theme, onProfileClick, currentAyah = "1:1" }: TopBarProps) {
   const isDark = theme === "dark";
-  const lv = getLevel(xp);
-  const nx = getNextLevel(xp);
-  const base = lv.minXP;
-  const cap = nx ? nx.minXP : lv.minXP + 500;
-  const pct = Math.min(100, Math.round(((xp - base) / (cap - base)) * 100));
+  const absAyahs = getAbsoluteAyah(currentAyah);
+  const lv = getLevel(absAyahs);
+  const nx = getNextLevel(absAyahs);
+  const base = lv.minAyahs;
+  const cap = nx ? nx.minAyahs : lv.minAyahs + 500;
+  const pct = Math.min(100, Math.round(((absAyahs - base) / (cap - base)) * 100));
 
   const heartsDisplay = Array.from({ length: 5 }, (_, i) => (i < hearts ? "❤️" : "🖤")).join("");
 
@@ -52,7 +54,7 @@ export default function TopBar({ xp, hearts, streakDays, juzLabel, displayInitia
           />
         </div>
         <span className="text-[11px] font-extrabold text-green-dark min-w-[50px] text-right">
-          {xp} XP
+          {absAyahs} Ayahs
         </span>
       </div>
     </div>

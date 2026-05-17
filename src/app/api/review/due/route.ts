@@ -40,18 +40,6 @@ export async function GET(request: NextRequest) {
 
     let cardsToReview: any[] = dueCards || [];
 
-    // If no cards due, fetch a few random known cards for practice
-    if (cardsToReview.length === 0) {
-      // @ts-ignore
-      const { data: randomCards } = await supabaseAdmin
-        .from("vocabulary_ledger")
-        .select("*")
-        .eq("user_id", profile.id)
-        .limit(5);
-      
-      cardsToReview = randomCards || [];
-    }
-
     if (cardsToReview.length === 0) {
       return NextResponse.json({ cards: [] });
     }

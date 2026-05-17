@@ -240,12 +240,12 @@ export class LocalStorageProvider implements StorageProvider {
         const entries: VocabularyLedgerEntry[] = request.result;
         const today = new Date().toISOString().split('T')[0];
         
-        const dueEntries = entries.filter(e => (e.srs_next_review || e.next_review || "") <= today).slice(0, limit);
+        const dueEntries = entries.filter(e => {
+          const nextReview = e.srs_next_review || e.next_review;
+          if (!nextReview) return false; // If no date is set, it's not due
+          return nextReview <= today;
+        }).slice(0, limit);
         let cardsToReview = dueEntries;
-
-        if (cardsToReview.length === 0) {
-          cardsToReview = entries.slice(0, 5);
-        }
 
         const cards: ReviewCard[] = cardsToReview.map(e => ({
           id: e.root,
@@ -270,7 +270,7 @@ export class LocalStorageProvider implements StorageProvider {
     });
   }
 
-  async submitReview(root: string, rating: "again" | "hard" | "good" | "easy"): Promise<void> {
+  async submitReview(root: string, rating: "again" | "hard" | "good" | "easy", timeSpentSeconds?: number): Promise<void> {
     if (!this.db) await this.init();
     if (!this.db) return;
 

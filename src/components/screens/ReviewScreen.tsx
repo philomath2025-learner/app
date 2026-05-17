@@ -24,6 +24,7 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
   const [correct, setCorrect] = useState(0);
   const [done, setDone] = useState(false);
   const [mistakeTracker, setMistakeTracker] = useState<Record<string, number>>({});
+  const [startTime, setStartTime] = useState<number>(Date.now());
 
   useEffect(() => {
     async function loadDueReviews() {
@@ -75,8 +76,10 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
         setCards(updatedCards);
       }
 
+      const timeSpent = Math.max(1, Math.floor((Date.now() - startTime) / 1000));
+
       const provider = getStorageProvider(storageMode);
-      provider.submitReview(card.id, rating).catch(e => console.error("Failed to submit review", e));
+      provider.submitReview(card.id, rating, timeSpent).catch(e => console.error("Failed to submit review", e));
 
       trackEvent("review_rated", { root: card.id, rating, isCorrect: rating === "good" || rating === "easy" });
 
@@ -85,6 +88,7 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
       } else {
         setIdx((i) => i + 1);
         setFlipped(false);
+        setStartTime(Date.now());
       }
     },
     [idx, cards, storageMode, mistakeTracker, onLoseHeart]
