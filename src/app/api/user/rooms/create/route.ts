@@ -12,8 +12,8 @@ export async function POST(req: Request) {
 
     const data = await createRoom(name, description, isPublic);
     return NextResponse.json(data);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to create room:", error);
-    return NextResponse.json({ error: "Failed to create room" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to create room" }, { status: 500 });
   }
 }

@@ -147,7 +147,8 @@ export default function RoomsScreen({ theme, storageMode }: RoomsScreenProps) {
         setActiveTab("my_rooms");
         await loadRooms();
       } else {
-        alert("Failed to create room.");
+        const data = await res.json();
+        alert(`Failed to create room: ${data.error}`);
       }
     } catch (err) {
       console.error(err);

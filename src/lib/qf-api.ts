@@ -119,11 +119,13 @@ export async function getJoinedRooms() {
 
 /** Create a new competition room */
 export async function createRoom(name: string, description: string = "", isPublic: boolean = false) {
+  const url = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') + '-' + Math.random().toString(36).substring(2, 8);
   return qfRequest(`/quran-reflect/v1/rooms/groups`, {
     method: "POST",
     body: JSON.stringify({
       name,
       description,
+      url,
       is_public: isPublic,
     }),
   });
