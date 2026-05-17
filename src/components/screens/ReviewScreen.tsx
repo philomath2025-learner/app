@@ -6,6 +6,7 @@ import { getStorageProvider } from "@/lib/storage";
 import type { ReviewCard } from "@/lib/storage/interface";
 import { trackEvent } from "@/lib/analytics";
 import { calculateSM2 } from "@/lib/srs";
+import { stripStopMarks } from "@/lib/quran";
 
 interface ReviewScreenProps {
   storageMode: "guest" | "cloud";
@@ -13,15 +14,18 @@ interface ReviewScreenProps {
   onGoHome: () => void;
   onLoseHeart: () => void;
   limit: number;
+  streak: number;
+  onAwardXP: (amount: number, msg: string) => void;
 }
 
-export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart, limit }: ReviewScreenProps) {
+export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart, limit, streak, onAwardXP }: ReviewScreenProps) {
   const isDark = theme === "dark";
   const [cards, setCards] = useState<ReviewCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [correct, setCorrect] = useState(0);
+  const [sessionXp, setSessionXp] = useState(0);
   const [done, setDone] = useState(false);
   const [mistakeTracker, setMistakeTracker] = useState<Record<string, number>>({});
   const [startTime, setStartTime] = useState<number>(Date.now());
@@ -51,6 +55,11 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
       if (rating === "good" || rating === "easy") {
         setCorrect((c) => c + 1);
         setMistakeTracker(prev => ({ ...prev, [card.id]: 0 }));
+      }
+
+      if (rating !== "again") {
+        onAwardXP(5, "+5 XP");
+        setSessionXp((prev) => prev + 5);
       }
 
       if (rating === "again") {
@@ -122,9 +131,9 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
           <p className="text-[13px] text-text-light mb-4">{correct} of {total} cards rated Good or Easy</p>
           <div className="grid grid-cols-3 gap-2 mb-4">
             {[
-              { emoji: "⚡", value: `${correct * 10}`, label: T("xpEarned") },
+              { emoji: "⚡", value: `${sessionXp}`, label: T("xpEarned") },
               { emoji: "✅", value: `${correct}`, label: "Good / Easy" },
-              { emoji: "🔥", value: "12", label: T("dayStreak") },
+              { emoji: "🔥", value: `${streak}`, label: T("dayStreak") },
             ].map((s) => (
               <div key={s.label} className="bg-gray3 rounded-[var(--radius-sm)] p-3 text-center">
                 <div className="text-[18px] mb-1">{s.emoji}</div>
@@ -168,8 +177,7 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
               
               <div className="flex-1 flex flex-col items-center justify-center py-4">
                 <div className={`px-6 py-4 rounded-2xl border-2 mb-8 shadow-sm transition-colors ${isDark ? 'bg-[#101826] border-[#284155]' : 'bg-blue-light/30 border-blue/10'}`}>
-                  <div className={`text-[10px] font-black uppercase tracking-widest mb-1 text-center ${isDark ? 'text-[#60E0C1]' : 'text-blue-dark'}`}>Recall Meaning</div>
-                  <div className={`text-[48px] font-quran leading-none ${isDark ? 'text-white' : 'text-text'}`}>{card.arabic}</div>
+                  <div className={`text-[48px] font-quran leading-none ${isDark ? 'text-white' : 'text-text'}`}>{stripStopMarks(card.arabic)}</div>
                 </div>
 
                 <div className={`text-[14px] mb-3 font-bold tracking-tight uppercase ${isDark ? 'text-[#50728D]' : 'text-gray1'}`}>{card.ref}</div>
@@ -189,7 +197,7 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
             /* Back Side */
             <div className="flex-1 flex flex-col p-6 overflow-y-auto custom-scrollbar animate-fade-in">
               <div className="flex flex-col items-center mb-6 shrink-0">
-                <div className={`text-[48px] font-quran leading-tight mb-2 ${isDark ? 'text-white' : 'text-text'}`}>{card.arabic}</div>
+                <div className={`text-[48px] font-quran leading-tight mb-2 ${isDark ? 'text-white' : 'text-text'}`}>{stripStopMarks(card.arabic)}</div>
                 <div className={`text-[24px] font-black mb-3 px-4 py-1 rounded-xl transition-colors ${isDark ? 'bg-[#202E45] text-[#60E0C1]' : 'bg-green-light/50 text-green-dark'}`}>
                   {card.meaning}
                 </div>

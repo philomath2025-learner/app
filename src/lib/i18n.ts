@@ -44,7 +44,7 @@ const UI_STRINGS: Record<string, string> = {
   language: "Content Language",
   reviewLimit: "Daily review limit",
   newWordsLimit: "New words per session",
-  recallMeaning: "🃏 Recall the meaning",
+  recallMeaning: "🧠 Recall the meaning",
   tapToReveal: "▼ tap to reveal",
   showAnswer: "👁 Show Answer",
   howWell: "How well did you know this?",

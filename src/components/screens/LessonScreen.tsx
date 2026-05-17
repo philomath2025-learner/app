@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { getStorageProvider } from "@/lib/storage";
 import { runDedupEngine, DedupedWord } from "@/lib/dedup-engine";
 import { trackEvent } from "@/lib/analytics";
+import { stripStopMarks } from "@/lib/quran";
 
 interface WordMorphology {
   root: string;
@@ -336,7 +337,7 @@ export default function LessonScreen({ ayahKey, lang, translationId, tafsirId, t
         {/* ── 1. Hero Card ── */}
         <div className={`${heroBg} border-[2px] rounded-[32px] p-8 mb-4 relative flex flex-col items-center justify-center min-h-[240px] shadow-sm animate-fade-in`}>
           <div className="text-[76px] font-quran leading-tight mb-8 drop-shadow-md" style={{ color: isDark ? '#60E0C1' : '' }}>
-            <span className={!isDark ? heroText : ''}>{targetWord.arabic}</span>
+            <span className={!isDark ? heroText : ''}>{stripStopMarks(targetWord.arabic)}</span>
           </div>
 
           {targetWord.audioUrl && (

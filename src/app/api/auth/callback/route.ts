@@ -52,6 +52,11 @@ export async function GET(request: NextRequest) {
     const qfSub = qfProfile?.sub;
     if (!qfSub) throw new Error("No sub found in QF id_token");
 
+    // Try multiple possible fields for name
+    const rawName = (qfProfile as any).name || (qfProfile as any).first_name || (qfProfile as any).preferred_username || (qfProfile as any).email?.split("@")[0] || "Learner";
+    const displayName = typeof rawName === "string" ? rawName.trim() : "Learner";
+    const displayInitial = (displayName || "L").charAt(0).toUpperCase();
+
     // 2. Sync to Supabase Database using supabaseAdmin
     // Check if user profile exists
     const { data: existingProfile } = await supabaseAdmin
@@ -65,8 +70,8 @@ export async function GET(request: NextRequest) {
       // @ts-ignore
       const { data: newProfile, error: profileErr } = await supabaseAdmin.from("user_profiles").insert({
         auth_id: qfSub,
-        display_name: (qfProfile as any).name || "Learner",
-        display_initial: ((qfProfile as any).name || "L").charAt(0).toUpperCase(),
+        display_name: displayName,
+        display_initial: displayInitial,
         qf_access_token: tokens.access_token,
         qf_refresh_token: tokens.refresh_token,
         qf_token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
@@ -80,9 +85,11 @@ export async function GET(request: NextRequest) {
         await supabaseAdmin.from("user_progress").insert({ user_id: newProfile.id });
       }
     } else {
-      // Update tokens for existing user
+      // Update tokens and name for existing user
       // @ts-ignore
       await supabaseAdmin.from("user_profiles").update({
+        display_name: displayName,
+        display_initial: displayInitial,
         qf_access_token: tokens.access_token,
         qf_refresh_token: tokens.refresh_token,
         qf_token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),

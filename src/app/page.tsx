@@ -335,7 +335,9 @@ export default function App() {
             onGoHome={() => navigate("home")} 
             onLoseHeart={loseHeart}
             limit={reviewLimit}
+            streak={streakDays}
             theme={theme}
+            onAwardXP={awardXP}
           />
         )}
 

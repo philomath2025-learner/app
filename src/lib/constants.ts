@@ -87,7 +87,7 @@ export const QF_OAUTH = {
   clientId: "1d0597e2-35ee-4f60-a594-f44c73fa29bf",
   authEndpoint: "https://oauth2.quran.foundation",
   apiBase: "https://apis.quran.foundation/auth/v1",
-  scopes: "openid offline_access user streak goal bookmark reading_session preference",
+  scopes: "openid profile email offline_access user streak goal bookmark reading_session preference",
 } as const;
 
 // ── MCP Config ──
@@ -102,10 +102,11 @@ export const ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
 export const NAV_ITEMS = [
   { id: "home", icon: "🏠", label: "Home" },
   { id: "map", icon: "🗺", label: "Juz Map" },
-  { id: "quiz", icon: "🃏", label: "Review" },
+  { id: "quiz", icon: "🧠", label: "Review" },
   { id: "lesson", icon: "📖", label: "Lesson" },
+  { id: "rooms", icon: "👥", label: "Rooms" },
   { id: "ledger", icon: "📚", label: "Ledger" },
   { id: "settings", icon: "⚙️", label: "Settings" },
 ] as const;
 
-export type ScreenId = (typeof NAV_ITEMS)[number]["id"] | "rooms" | "profile" | "dedup" | "glossika";
+export type ScreenId = (typeof NAV_ITEMS)[number]["id"] | "profile" | "dedup" | "glossika";

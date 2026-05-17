@@ -168,3 +168,18 @@ export function getJuzInfo(ayahKey: string) {
   const surahName = SURAH_NAMES[s] || `Surah ${s}`;
   return { juz, surahName, label: `Juz ${juz} · ${surahName}` };
 }
+
+/**
+ * Removes Quranic stop signs and Tajweed small letters (Meem, Seen, etc.)
+ * This is useful when displaying words in isolation, where stop marks 
+ * (which govern recitation flow between words) are irrelevant and confusing.
+ */
+export function stripStopMarks(arabic: string): string {
+  if (!arabic) return "";
+  // 06D6-06DC: ۖ ۗ ۘ ۙ ۚ ۛ ۜ
+  // 06E2: ۢ (Meem Isolated)
+  // 06E3: ۣ (Low Seen)
+  // 06E8: ۨ (High Noon)
+  // 06ED: ۭ (Low Meem)
+  return arabic.replace(/[\u06D6-\u06DC\u06E2\u06E3\u06E8\u06ED]/g, '');
+}
