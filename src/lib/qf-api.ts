@@ -111,7 +111,12 @@ export async function syncActivityDay(seconds: number, date: string) {
 
 /** Get official QF streak */
 export async function getCurrentStreak() {
-  return qfRequest(`/v1/streaks/current-streak-days?type=QURAN`);
+  return qfRequest(`/v1/streaks/current-streak-days?type=QURAN`)
+    .catch((err) => {
+      // Fallback if endpoint is missing in pre-live or user has no streak
+      if (err.message.includes('404')) return { streak: 0 };
+      throw err;
+    });
 }
 
 /** Get joined rooms for competitions */
