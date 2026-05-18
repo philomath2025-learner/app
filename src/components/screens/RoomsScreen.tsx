@@ -39,6 +39,8 @@ export default function RoomsScreen({ theme, storageMode }: RoomsScreenProps) {
   const [newRoomName, setNewRoomName] = useState("");
   const [newRoomDesc, setNewRoomDesc] = useState("");
   const [newRoomPublic, setNewRoomPublic] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
 
   async function loadRooms() {
     if (storageMode === "guest") {
@@ -129,7 +131,9 @@ export default function RoomsScreen({ theme, storageMode }: RoomsScreenProps) {
 
   const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newRoomName) return;
+    if (!newRoomName || isCreating) return;
+    setIsCreating(true);
+    setCreateError("");
     try {
       const res = await fetch("/api/user/rooms/create", {
         method: "POST",
@@ -147,12 +151,14 @@ export default function RoomsScreen({ theme, storageMode }: RoomsScreenProps) {
         setActiveTab("my_rooms");
         await loadRooms();
       } else {
-        const data = await res.json();
-        alert(`Failed to create room: ${data.error}`);
+        const data = await res.json().catch(() => ({ error: "Server returned invalid response" }));
+        setCreateError(data.error || "Failed to create room.");
       }
     } catch (err) {
       console.error(err);
-      alert("Error creating room.");
+      setCreateError("A network error occurred while creating the room.");
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -375,22 +381,36 @@ export default function RoomsScreen({ theme, storageMode }: RoomsScreenProps) {
                   checked={newRoomPublic}
                   onChange={(e) => setNewRoomPublic(e.target.checked)}
                   className="w-5 h-5 rounded"
+                  disabled={isCreating}
                 />
                 <label htmlFor="isPublic" className="font-bold text-[14px]">Make this room public</label>
               </div>
+              
+              {createError && (
+                <div className="text-red-500 text-[12px] font-bold bg-red-500/10 p-3 rounded-xl">
+                  {createError}
+                </div>
+              )}
+              
               <div className="flex gap-3 mt-4">
                 <button 
                   type="button"
                   onClick={() => setIsCreatingRoom(false)}
-                  className={`flex-1 py-3 rounded-2xl font-black uppercase text-[14px] ${isDark ? 'bg-[#202E45] text-white hover:bg-[#2A3F5C]' : 'bg-gray2 text-text hover:bg-gray1'}`}
+                  disabled={isCreating}
+                  className={`flex-1 py-3 rounded-2xl font-black uppercase text-[14px] ${isDark ? 'bg-[#202E45] text-white hover:bg-[#2A3F5C]' : 'bg-gray2 text-text hover:bg-gray1'} disabled:opacity-50`}
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className={`flex-1 py-3 rounded-2xl font-black uppercase text-[14px] ${isDark ? 'bg-[#60E0C1] text-[#0B1121]' : 'bg-blue text-white shadow-active hover:brightness-110'}`}
+                  disabled={isCreating}
+                  className={`flex-1 py-3 rounded-2xl font-black uppercase text-[14px] ${isDark ? 'bg-[#60E0C1] text-[#0B1121]' : 'bg-blue text-white shadow-active hover:brightness-110'} disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center`}
                 >
-                  Create
+                  {isCreating ? (
+                    <span className="w-5 h-5 border-2 border-[#0B1121] border-t-transparent rounded-full animate-spin"></span>
+                  ) : (
+                    "Create"
+                  )}
                 </button>
               </div>
             </form>

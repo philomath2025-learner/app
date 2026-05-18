@@ -129,7 +129,7 @@ export async function createRoom(name: string, description: string = "", isPubli
       name,
       description,
       url,
-      is_public: isPublic,
+      isPublic,
     }),
   });
 }
