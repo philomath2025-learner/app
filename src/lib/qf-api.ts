@@ -69,8 +69,8 @@ export async function qfPatch(path: string, body: unknown) {
 
 // ── Specific API Helpers ──
 
-const QF_BASE_API = process.env.QF_API_BASE 
-  ? process.env.QF_API_BASE.replace('/auth/v1', '') 
+const QF_BASE_API = process.env.QF_API_BASE
+  ? process.env.QF_API_BASE.replace('/auth/v1', '')
   : "https://apis.quran.foundation";
 
 /** Proxy a request with dynamic base */
@@ -89,7 +89,7 @@ async function qfRequest(path: string, options: RequestInit = {}) {
     headers: tzHeaders,
     cache: "no-store",
   });
-  
+
   if (!res.ok) {
     const err = await res.text();
     throw new Error(`QF API ${path} failed: ${res.status} — ${err}`);
@@ -142,7 +142,12 @@ export async function getRoomMembers(roomId: string | number) {
 /** Search for public groups */
 export async function searchRooms(query: string, page = 1, limit = 10, roomType = 'GROUP') {
   const q = encodeURIComponent(query);
-  return qfRequest(`/quran-reflect/v1/rooms/groups/search?q=${q}&page=${page}&limit=${limit}&roomType=${roomType}`);
+  return qfRequest(`/quran-reflect/v1/rooms/search?q=${q}&page=${page}&limit=${limit}&roomType=${roomType}`)
+    .catch((err) => {
+      // Fallback for pre-live if search endpoint is missing or path changed
+      if (err.message.includes('404')) return { data: [] };
+      throw err;
+    });
 }
 
 /** Join a specific group */
