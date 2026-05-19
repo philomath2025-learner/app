@@ -25,6 +25,9 @@ export async function POST(request: NextRequest) {
 
     const word = await request.json();
 
+    const userTz = request.headers.get("x-user-timezone") || request.headers.get("x-vercel-ip-timezone") || "UTC";
+    const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: userTz, year: 'numeric', month: '2-digit', day: '2-digit' });
+    
     // 1. Insert into vocabulary_ledger
     const ledgerEntry = {
       user_id: profile.id,
@@ -39,7 +42,7 @@ export async function POST(request: NextRequest) {
       srs_interval: 1,
       srs_repetitions: 0,
       srs_ease_factor: 2.5,
-      srs_next_review: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+      srs_next_review: formatter.format(new Date(Date.now() + 86400000)),
     };
 
     // @ts-ignore - bypassing types for MVP speed

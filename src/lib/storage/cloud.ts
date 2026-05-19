@@ -263,7 +263,10 @@ export class CloudStorageProvider implements StorageProvider {
 
   async getDueReviews(limit: number = 20): Promise<ReviewCard[]> {
     try {
-      const res = await fetch(`/api/review/due?limit=${limit}`, { cache: "no-store" });
+      const res = await fetch(`/api/review/due?limit=${limit}`, { 
+        headers: { "x-user-timezone": Intl.DateTimeFormat().resolvedOptions().timeZone },
+        cache: "no-store" 
+      });
       if (!res.ok) return [];
       const data = await res.json();
       return data.cards || [];
@@ -275,7 +278,10 @@ export class CloudStorageProvider implements StorageProvider {
 
   async getPracticeReviews(limit: number = 20): Promise<ReviewCard[]> {
     try {
-      const res = await fetch(`/api/review/due?limit=${limit}&practice=true`, { cache: "no-store" });
+      const res = await fetch(`/api/review/due?limit=${limit}&practice=true`, { 
+        headers: { "x-user-timezone": Intl.DateTimeFormat().resolvedOptions().timeZone },
+        cache: "no-store" 
+      });
       if (!res.ok) return [];
       const data = await res.json();
       return data.cards || [];

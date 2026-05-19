@@ -5,7 +5,7 @@ import { decodeJwt } from "jose";
 import { supabaseAdmin } from "@/lib/supabase";
 
 /** Helper: read streak from Supabase user_progress table */
-async function getLocalStreak(authId: string): Promise<number> {
+async function getLocalStreak(authId: string, userTz: string): Promise<number> {
   const { data: profile } = await supabaseAdmin
     .from("user_profiles")
     .select("id")
@@ -26,8 +26,16 @@ async function getLocalStreak(authId: string): Promise<number> {
   const lastDate = progress.streak_last_date;
   if (!lastDate) return 0;
 
-  const today = new Date().toISOString().split("T")[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+  // Use timezone to correctly calculate "today" and "yesterday"
+  const formatter = new Intl.DateTimeFormat('en-CA', { 
+    timeZone: userTz, 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit' 
+  });
+  
+  const today = formatter.format(new Date());
+  const yesterday = formatter.format(new Date(Date.now() - 86400000));
 
   if (lastDate === today || lastDate === yesterday) {
     return progress.streak_days || 0;
@@ -62,7 +70,8 @@ export async function GET(request: NextRequest) {
 
     // 2. Fallback: read streak from Supabase user_progress
     if (authId) {
-      const localStreak = await getLocalStreak(authId);
+      const userTz = request.headers.get("x-user-timezone") || request.headers.get("x-vercel-ip-timezone") || "UTC";
+      const localStreak = await getLocalStreak(authId, userTz);
       return NextResponse.json({ streak: localStreak });
     }
 

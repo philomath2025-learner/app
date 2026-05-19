@@ -292,9 +292,9 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
             <div className="grid grid-cols-4 gap-2">
               {(() => {
                 const card = cards[idx];
-                const prevInt = card?.srs_interval || 1;
-                const prevRep = card?.srs_repetitions || 1;
-                const prevEase = card?.srs_ease_factor || 2.5;
+                const prevInt = card?.srs_interval ?? 1;
+                const prevRep = card?.srs_repetitions ?? 0;
+                const prevEase = card?.srs_ease_factor ?? 2.5;
 
                 const getDynamicInterval = (rating: "good" | "easy") => {
                   const result = calculateSM2(rating, prevInt, prevRep, prevEase);

@@ -55,7 +55,11 @@ export async function POST(request: NextRequest) {
       typedEntry.srs_ease_factor
     );
 
-    const nextReviewDate = addDays(new Date(), sm2Result.interval).toISOString().split('T')[0];
+    const userTz = request.headers.get("x-user-timezone") || request.headers.get("x-vercel-ip-timezone") || "UTC";
+    const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: userTz, year: 'numeric', month: '2-digit', day: '2-digit' });
+    
+    const futureDate = addDays(new Date(), sm2Result.interval);
+    const nextReviewDate = formatter.format(futureDate);
 
     // Update ledger
     // @ts-ignore
