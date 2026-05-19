@@ -39,16 +39,18 @@ export default function OnboardingScreen({ onLogin, onGuest }: OnboardingScreenP
         {renderProgress()}
 
         <div className="w-48 h-48 mb-8 animate-float mt-auto">
-          <img src="/logo.png" alt="QuranLingo Logo" className="w-full h-full object-contain" />
+          <img src="/logo.png" alt="AlQuranLingo Logo" className="w-full h-full object-contain" />
         </div>
 
-        <h1 className="text-[28px] font-black text-text mb-3 leading-tight">
+        <h1 className="text-[26px] font-black text-text mb-2 leading-tight">
           Learn Quranic Vocabulary
           <br />
-          <span className="text-green">Root by Root</span>
+          <span className="text-green text-[16px] sm:text-[18px] font-extrabold tracking-tight block mt-1 whitespace-nowrap">
+            Every Unique Word, Root & Meaning
+          </span>
         </h1>
 
-        <p className="text-[15px] text-text-light mb-10 max-w-[280px]">
+        <p className="text-[13px] sm:text-[14px] text-text-light mb-10 max-w-[280px]">
           Inspired by How Human Brain Works!
         </p>
 
@@ -140,7 +142,7 @@ export default function OnboardingScreen({ onLogin, onGuest }: OnboardingScreenP
       {renderProgress()}
 
       <div className="w-40 h-40 mb-6 animate-float mt-auto">
-        <img src="/logo.png" alt="QuranLingo Logo" className="w-full h-full object-contain" />
+        <img src="/logo.png" alt="AlQuranLingo Logo" className="w-full h-full object-contain" />
       </div>
 
       <h2 className="text-[24px] font-black text-text mb-8">Start Your Journey</h2>

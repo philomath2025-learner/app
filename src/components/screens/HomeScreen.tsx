@@ -71,7 +71,7 @@ export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah,
         className="w-full text-left bg-gradient-to-br from-blue to-purple rounded-[var(--radius-card)] p-4 mb-3 flex items-center justify-between text-white hover:opacity-90 active:scale-95 transition-all"
       >
         <div>
-          <div className="text-[10px] font-bold opacity-80 uppercase tracking-wide mb-[2px]">Current QuranLingo's Level</div>
+          <div className="text-[10px] font-bold opacity-80 uppercase tracking-wide mb-[2px]">Current AlQuranLingo's Level</div>
           <div className="text-[19px] font-black">{lv.name}</div>
           <div className="text-[11px] opacity-75 mt-[2px]">
             {nx ? `${ayahsToNext} Ayahs to ${nx.name}` : "Max level!"}
@@ -246,7 +246,7 @@ export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah,
             onClick={(e) => e.stopPropagation()}
           >
             <div className={`p-4 border-b-2 flex justify-between items-center ${isDark ? 'border-[#1E314A] bg-[#152336]' : 'border-gray2 bg-gray3'}`}>
-              <h2 className="text-[16px] font-black uppercase tracking-wide">QuranLingo's Levels</h2>
+              <h2 className="text-[16px] font-black uppercase tracking-wide">AlQuranLingo's Levels</h2>
               <button onClick={() => setShowLevelModal(false)} className={`w-8 h-8 rounded-full flex items-center justify-center transition-opacity ${isDark ? 'bg-[#1E314A] text-white' : 'bg-gray2 text-gray1 hover:opacity-80'}`}>✕</button>
             </div>
             <div className="p-4 max-h-[60vh] overflow-y-auto">

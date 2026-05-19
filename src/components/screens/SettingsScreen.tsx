@@ -319,7 +319,7 @@ export default function SettingsScreen({
 
       {/* ── App Info ── */}
       <div className="text-center mt-8 pb-4">
-        <div className={`text-[12px] font-black uppercase tracking-widest ${isDark ? 'text-[#50728D]' : 'text-text-light'}`}>QuranLingo v1.0</div>
+        <div className={`text-[12px] font-black uppercase tracking-widest ${isDark ? 'text-[#50728D]' : 'text-text-light'}`}>AlQuranLingo v1.0</div>
         <div className={`text-[10px] mt-1 font-bold ${isDark ? 'text-[#1E314A]' : 'text-gray1'}`}>
           Quran Foundation Hackathon 2026
         </div>
