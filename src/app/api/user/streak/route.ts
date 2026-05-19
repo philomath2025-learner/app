@@ -56,26 +56,27 @@ export async function GET(request: NextRequest) {
     const payload = decodeJwt(token);
     const authId = payload?.sub as string;
 
+    let qfStreak = 0;
     // 1. Try QF API first (only works with real QF OAuth login)
     const qfToken = cookieStore.get("qf_access_token")?.value;
     if (qfToken) {
       try {
         const data = await getCurrentStreak();
-        const streak = data.current_streak || data.streak || 0;
-        return NextResponse.json({ streak });
+        qfStreak = data.current_streak || data.streak || 0;
       } catch (e) {
-        console.warn("QF streak API failed, falling back to local:", e);
+        console.warn("QF streak API failed:", e);
       }
     }
 
-    // 2. Fallback: read streak from Supabase user_progress
+    // 2. Read streak from Supabase user_progress as a robust fallback/comparator
     if (authId) {
       const userTz = request.headers.get("x-user-timezone") || request.headers.get("x-vercel-ip-timezone") || "UTC";
       const localStreak = await getLocalStreak(authId, userTz);
-      return NextResponse.json({ streak: localStreak });
+      // Return the maximum of the two to ensure UI is always immediately responsive
+      return NextResponse.json({ streak: Math.max(qfStreak, localStreak) });
     }
 
-    return NextResponse.json({ streak: 0 });
+    return NextResponse.json({ streak: qfStreak });
   } catch (error) {
     console.error("Failed to fetch streak:", error);
     return NextResponse.json({ streak: 0 });
