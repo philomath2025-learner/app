@@ -53,6 +53,7 @@ export default function App() {
   // XP popup
   const [xpMsg, setXpMsg] = useState("");
   const [showXpPop, setShowXpPop] = useState(false);
+  const [practiceMode, setPracticeMode] = useState(false);
 
   function navigate(id: ScreenId) {
     setScreen(id);
@@ -421,6 +422,7 @@ export default function App() {
             storageMode={storageMode}
             theme={theme}
             onStartReview={() => navigate("quiz")}
+            onStartRefresher={() => { setPracticeMode(true); navigate("quiz"); }}
             onStartLesson={startLesson}
             onNavigateToRooms={() => navigate("rooms")}
             onPickSurah={() => navigate("surah-picker")}
@@ -448,12 +450,14 @@ export default function App() {
         {screen === "quiz" && (
           <ReviewScreen 
             storageMode={storageMode} 
-            onGoHome={() => navigate("home")} 
+            onGoHome={() => { setPracticeMode(false); navigate("home"); }} 
             onLoseHeart={loseHeart}
             limit={reviewLimit}
             streak={streakDays}
             theme={theme}
             onAwardXP={awardXP}
+            practiceMode={practiceMode}
+            onStartRefresher={() => setPracticeMode(true)}
           />
         )}
 

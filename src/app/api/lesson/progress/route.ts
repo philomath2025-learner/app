@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       translation_en: word.translation || null,
       frequency_root: word.frequencyRoot || 0,
       srs_interval: 1,
-      srs_repetitions: 1,
+      srs_repetitions: 0,
       srs_ease_factor: 2.5,
       srs_next_review: new Date(Date.now() + 86400000).toISOString().split('T')[0],
     };

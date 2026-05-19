@@ -273,6 +273,18 @@ export class CloudStorageProvider implements StorageProvider {
     }
   }
 
+  async getPracticeReviews(limit: number = 20): Promise<ReviewCard[]> {
+    try {
+      const res = await fetch(`/api/review/due?limit=${limit}&practice=true`, { cache: "no-store" });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.cards || [];
+    } catch (err) {
+      console.error("Failed to fetch practice reviews from cloud:", err);
+      return [];
+    }
+  }
+
   async submitReview(root: string, rating: "again" | "hard" | "good" | "easy", timeSpentSeconds?: number): Promise<void> {
     try {
       await fetch("/api/review/rate", {

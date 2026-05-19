@@ -25,16 +25,23 @@ export async function GET(request: NextRequest) {
     if (!profile) return NextResponse.json({ cards: [] }, { status: 401 });
 
     const limit = parseInt(request.nextUrl.searchParams.get("limit") || "20", 10);
+    const practiceMode = request.nextUrl.searchParams.get("practice") === "true";
     const today = new Date().toISOString().split('T')[0];
 
-    // Fetch words due for review today or earlier
-    // @ts-ignore — Supabase types not generated
-    const { data: dueCards, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("vocabulary_ledger")
       .select("*")
       .eq("user_id", profile.id)
-      .lte("srs_next_review", today)
+      .order("srs_next_review", { ascending: true })
       .limit(limit);
+
+    // In normal mode, only return cards due today or earlier
+    if (!practiceMode) {
+      query = query.lte("srs_next_review", today);
+    }
+
+    // @ts-ignore — Supabase types not generated
+    const { data: dueCards, error } = await query;
 
     if (error) throw error;
 
