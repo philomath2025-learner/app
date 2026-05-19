@@ -124,6 +124,9 @@ export interface StorageProvider {
   /** Get words due for review */
   getDueReviews(limit?: number): Promise<ReviewCard[]>;
 
+  /** Get all learned words for refresher/practice mode (bypasses due-date filter, sorted soonest-due first) */
+  getPracticeReviews(limit?: number): Promise<ReviewCard[]>;
+
   /** Submit SM-2 review rating */
   submitReview(root: string, rating: "again" | "hard" | "good" | "easy", timeSpentSeconds?: number): Promise<void>;
 

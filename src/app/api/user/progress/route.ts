@@ -24,17 +24,19 @@ export async function GET(request: NextRequest) {
 
     const { data: progress } = await supabaseAdmin
       .from("user_progress")
-      .select("xp, current_ayah, hearts, hearts_refill_at")
+      .select("xp, current_ayah, hearts, hearts_refill_at, streak_days, streak_last_date")
       .eq("user_id", profile.id)
       .single();
 
-    if (!progress) return NextResponse.json({ xp: 0, currentAyah: "1:1", hearts: 5 });
+    if (!progress) return NextResponse.json({ xp: 0, currentAyah: "1:1", hearts: 5, streak_days: 0 });
 
     return NextResponse.json({ 
       xp: progress.xp, 
       currentAyah: progress.current_ayah,
       hearts: progress.hearts,
-      hearts_refill_at: progress.hearts_refill_at
+      hearts_refill_at: progress.hearts_refill_at,
+      streak_days: progress.streak_days || 0,
+      streak_last_date: progress.streak_last_date,
     });
   } catch (error) {
     console.error("User progress fetch error:", error);
@@ -72,7 +74,7 @@ export async function POST(request: NextRequest) {
     if (xpToAdd) {
       const { data: progress } = await supabaseAdmin
         .from("user_progress")
-        .select("xp, total_words_learned")
+        .select("xp, total_words_learned, streak_days, streak_last_date")
         .eq("user_id", profile.id)
         .single();
         
@@ -81,6 +83,24 @@ export async function POST(request: NextRequest) {
         // Optionally bump vocab count if this was a new word (we assume 10 XP = new word for now)
         if (xpToAdd === 10) {
            updateData.total_words_learned = (progress.total_words_learned || 0) + 1;
+        }
+
+        // ── Streak logic ──
+        const today = new Date().toISOString().split("T")[0];
+        const lastDate = progress.streak_last_date;
+
+        if (lastDate === today) {
+          // Already active today — no change needed
+        } else {
+          const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+          if (lastDate === yesterday) {
+            // Consecutive day — extend streak
+            updateData.streak_days = (progress.streak_days || 0) + 1;
+          } else {
+            // Gap > 1 day or first ever activity — reset to 1
+            updateData.streak_days = 1;
+          }
+          updateData.streak_last_date = today;
         }
       }
     }

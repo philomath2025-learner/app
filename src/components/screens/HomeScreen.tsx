@@ -15,6 +15,7 @@ interface HomeScreenProps {
   storageMode: "guest" | "cloud";
   theme: "light" | "dark";
   onStartReview: () => void;
+  onStartRefresher: () => void;
   onStartLesson: (ref: string) => void;
   onNavigateToRooms: () => void;
   onPickSurah: () => void;
@@ -22,7 +23,7 @@ interface HomeScreenProps {
   completedAyahCount: number;
 }
 
-export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah, storageMode, theme, onStartReview, onStartLesson, onNavigateToRooms, onPickSurah, completedSurahs, completedAyahCount }: HomeScreenProps) {
+export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah, storageMode, theme, onStartReview, onStartRefresher, onStartLesson, onNavigateToRooms, onPickSurah, completedSurahs, completedAyahCount }: HomeScreenProps) {
   const isDark = theme === "dark";
   
   const absAyahs = completedAyahCount;
@@ -160,8 +161,9 @@ export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah,
         }`}
       >
         <div>
-          <div className={`text-[10px] font-black uppercase tracking-wider ${isDark ? 'text-[#60E0C1]' : 'text-blue'}`}>
-            🏆 Group Competitions
+          <div className={`text-[10px] font-black uppercase tracking-wider flex items-center gap-2 ${isDark ? 'text-[#60E0C1]' : 'text-blue'}`}>
+            <span>🏆 Group Competitions</span>
+            <span className="animate-pulse bg-[#ef4444] text-white px-2 py-0.5 rounded-full text-[9px] normal-case tracking-normal">Feature Coming soon...</span>
           </div>
           <div className={`text-[14px] font-black mt-0.5 ${isDark ? 'text-white' : 'text-text'}`}>
             Rooms & Leaderboards
@@ -209,24 +211,29 @@ export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah,
           </div>
         ) : (
           <div
-            className={`w-full p-4 mb-3 border-2 rounded-[var(--radius-card)] text-left flex items-center justify-between transition-all duration-300 ${
+            className={`w-full p-4 mb-3 border-2 rounded-[var(--radius-card)] text-left flex flex-col gap-3 transition-all duration-300 ${
               isDark 
                 ? 'bg-[#101F18] border-[#1B3627]' 
                 : 'bg-[#EBFDF3] border-[#C2F4D8]'
             }`}
           >
-            <div>
-              <div className={`text-[10px] font-black uppercase tracking-wider ${isDark ? 'text-[#60E0C1]' : 'text-green-dark'}`}>
-                🎉 SRS Caught Up
+            <div className="flex items-center justify-between">
+              <div>
+                <div className={`text-[10px] font-black uppercase tracking-wider ${isDark ? 'text-[#60E0C1]' : 'text-green-dark'}`}>
+                  🎉 SRS Caught Up
+                </div>
+                <div className={`text-[14px] font-black mt-0.5 ${isDark ? 'text-white' : 'text-text'}`}>
+                  All Caught Up!
+                </div>
+                <div className={`text-[11px] font-bold mt-1 ${isDark ? 'text-[#A1B2C3]' : 'text-text-light'}`}>
+                  You have learned {learnedCount} roots. Your next official reviews are scheduled starting tomorrow.
+                </div>
               </div>
-              <div className={`text-[14px] font-black mt-0.5 ${isDark ? 'text-white' : 'text-text'}`}>
-                All Caught Up!
-              </div>
-              <div className={`text-[11px] font-bold mt-1 ${isDark ? 'text-[#A1B2C3]' : 'text-text-light'}`}>
-                No words are currently due for review. Excellent work!
-              </div>
+              <div className="text-[28px] mr-1">🏆</div>
             </div>
-            <div className="text-[28px] mr-1">🏆</div>
+            <button onClick={onStartRefresher} className="w-full bg-white text-green-dark hover:bg-gray3 border-2 border-green-dark text-[13px] font-black py-3 rounded-[12px] uppercase tracking-wider transition-colors shadow-sm">
+              🧠 Study Ahead
+            </button>
           </div>
         )
       ) : null}

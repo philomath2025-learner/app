@@ -16,9 +16,11 @@ interface ReviewScreenProps {
   limit: number;
   streak: number;
   onAwardXP: (amount: number, msg: string) => void;
+  practiceMode?: boolean;
+  onStartRefresher?: () => void;
 }
 
-export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart, limit, streak, onAwardXP }: ReviewScreenProps) {
+export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart, limit, streak, onAwardXP, practiceMode, onStartRefresher }: ReviewScreenProps) {
   const isDark = theme === "dark";
   const [cards, setCards] = useState<ReviewCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,12 +35,14 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
   useEffect(() => {
     async function loadDueReviews() {
       const provider = getStorageProvider(storageMode);
-      const due = await provider.getDueReviews(limit);
+      const due = practiceMode 
+        ? await provider.getPracticeReviews(limit) 
+        : await provider.getDueReviews(limit);
       setCards(due);
       setLoading(false);
     }
     loadDueReviews();
-  }, [storageMode, limit]);
+  }, [storageMode, limit, practiceMode]);
 
   const total = cards.length;
   const pct = done || total === 0 ? 100 : Math.round((idx / total) * 100);
@@ -58,8 +62,9 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
       }
 
       if (rating !== "again") {
-        onAwardXP(5, "+5 XP");
-        setSessionXp((prev) => prev + 5);
+        const xpToAward = practiceMode ? 2 : 5;
+        onAwardXP(xpToAward, `+${xpToAward} XP`);
+        setSessionXp((prev) => prev + xpToAward);
       }
 
       if (rating === "again") {
@@ -110,11 +115,26 @@ export default function ReviewScreen({ storageMode, theme, onGoHome, onLoseHeart
   if (total === 0) {
     return (
       <div className="flex-1 overflow-y-auto p-3.5">
-        <div className="text-center py-20">
-          <div className="text-[48px] mb-4">🏆</div>
-          <h2 className="text-[18px] font-black text-text mb-2">You&apos;re all caught up!</h2>
-          <p className="text-[13px] text-text-light mb-6">No words are due for review right now. Keep learning new words or come back later!</p>
-          <button onClick={onGoHome} className="cta-btn mt-6 max-w-[200px] mx-auto">
+        <div className="text-center py-12">
+          <div className="text-[48px] mb-4 animate-pop-in">🏆</div>
+          <h2 className="text-[20px] font-black text-text mb-2">You&apos;re all caught up!</h2>
+          <p className="text-[13px] text-text-light mb-8 max-w-[250px] mx-auto leading-relaxed">
+            No words are due for review right now. Your vocabulary is perfectly locked in memory!
+          </p>
+          
+          {onStartRefresher && (
+            <div className={`mx-4 p-5 rounded-[24px] mb-6 border-2 transition-colors ${isDark ? 'bg-[#152336] border-[#1E314A]' : 'bg-[#EBFDF3] border-[#C2F4D8]'}`}>
+              <div className="text-[12px] font-black uppercase tracking-wider mb-2 text-green-dark">Want extra practice?</div>
+              <p className={`text-[12px] mb-4 ${isDark ? 'text-[#A1B2C3]' : 'text-text-light'}`}>
+                Strengthen your memory by running a quick refresher session on your learned roots.
+              </p>
+              <button onClick={onStartRefresher} className="w-full bg-white text-green-dark hover:bg-gray3 border-2 border-green-dark text-[13px] font-black py-3 rounded-[12px] uppercase tracking-wider transition-colors shadow-sm">
+                🧠 Start Refresher
+              </button>
+            </div>
+          )}
+
+          <button onClick={onGoHome} className="cta-btn secondary max-w-[200px] mx-auto border-2 text-[14px]">
             Back to Home
           </button>
         </div>

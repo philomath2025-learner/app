@@ -77,7 +77,7 @@ export class LocalStorageProvider implements StorageProvider {
           lemma: word.lemma,
           status: "known",
           srs_interval: 1,
-          srs_repetitions: 1,
+          srs_repetitions: 0,
           srs_ease_factor: 2.5,
           srs_next_review: new Date(Date.now() + 86400000).toISOString().split('T')[0],
           learned_at: new Date().toISOString(),
@@ -287,6 +287,48 @@ export class LocalStorageProvider implements StorageProvider {
         resolve(cards);
       };
       
+      request.onerror = () => resolve([]);
+    });
+  }
+
+  async getPracticeReviews(limit: number = 20): Promise<ReviewCard[]> {
+    if (!this.db) await this.init();
+    if (!this.db) return [];
+
+    return new Promise((resolve) => {
+      const transaction = this.db!.transaction(STORE_NAME, "readonly");
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        const entries: VocabularyLedgerEntry[] = request.result;
+
+        // Sort by soonest next_review date — gives most urgent first
+        const sorted = [...entries].sort((a, b) => {
+          const aDate = a.srs_next_review || a.next_review || "9999-12-31";
+          const bDate = b.srs_next_review || b.next_review || "9999-12-31";
+          return aDate.localeCompare(bDate);
+        }).slice(0, limit);
+
+        const cards: ReviewCard[] = sorted.map(e => ({
+          id: e.root,
+          arabic: e.first_surface_form || e.lemma,
+          root: e.root,
+          meaning: e.translation_en || "Meaning unavailable",
+          ayah: "",
+          ayahTranslation: "",
+          ayahWords: [],
+          ref: e.first_ayah_key || e.first_seen_ayah || "",
+          hint: e.pos,
+          xp: 10,
+          srs_interval: e.srs_interval || e.interval,
+          srs_repetitions: e.srs_repetitions || e.repetition,
+          srs_ease_factor: e.srs_ease_factor || e.ease_factor,
+        }));
+
+        resolve(cards);
+      };
+
       request.onerror = () => resolve([]);
     });
   }
