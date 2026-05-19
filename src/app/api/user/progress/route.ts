@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { decodeJwt } from "jose";
 import { supabaseAdmin } from "@/lib/supabase";
+import { syncActivityDay } from "@/lib/qf-api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -86,13 +87,15 @@ export async function POST(request: NextRequest) {
         }
 
         // ── Streak logic ──
-        const today = new Date().toISOString().split("T")[0];
+        const userTz = request.headers.get("x-user-timezone") || request.headers.get("x-vercel-ip-timezone") || "UTC";
+        const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: userTz, year: 'numeric', month: '2-digit', day: '2-digit' });
+        const today = formatter.format(new Date());
         const lastDate = progress.streak_last_date;
 
         if (lastDate === today) {
           // Already active today — no change needed
         } else {
-          const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+          const yesterday = formatter.format(new Date(Date.now() - 86400000));
           if (lastDate === yesterday) {
             // Consecutive day — extend streak
             updateData.streak_days = (progress.streak_days || 0) + 1;
@@ -101,6 +104,13 @@ export async function POST(request: NextRequest) {
             updateData.streak_days = 1;
           }
           updateData.streak_last_date = today;
+        }
+
+        // Inform QF of the activity so official streak aligns
+        try {
+          await syncActivityDay(120, today);
+        } catch (e) {
+          console.error("Failed to sync activity to QF during XP update:", e);
         }
       }
     }

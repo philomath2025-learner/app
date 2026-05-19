@@ -97,7 +97,10 @@ export class CloudStorageProvider implements StorageProvider {
     try {
       await fetch("/api/user/progress", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-user-timezone": Intl.DateTimeFormat().resolvedOptions().timeZone
+        },
         body: JSON.stringify({ xpToAdd: amount }),
       });
     } catch (err) {
