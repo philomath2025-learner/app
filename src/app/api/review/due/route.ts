@@ -26,7 +26,9 @@ export async function GET(request: NextRequest) {
 
     const limit = parseInt(request.nextUrl.searchParams.get("limit") || "20", 10);
     const practiceMode = request.nextUrl.searchParams.get("practice") === "true";
-    const today = new Date().toISOString().split('T')[0];
+    const userTz = request.headers.get("x-user-timezone") || request.headers.get("x-vercel-ip-timezone") || "UTC";
+    const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: userTz, year: 'numeric', month: '2-digit', day: '2-digit' });
+    const today = formatter.format(new Date());
 
     let query = supabaseAdmin
       .from("vocabulary_ledger")

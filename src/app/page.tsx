@@ -319,7 +319,11 @@ export default function App() {
         }
 
         try {
-          const res = await fetch("/api/user/streak");
+          const res = await fetch("/api/user/streak", {
+            headers: {
+              "x-user-timezone": Intl.DateTimeFormat().resolvedOptions().timeZone
+            }
+          });
           if (res.ok) {
             const data = await res.json();
             if (data && data.streak !== undefined) {

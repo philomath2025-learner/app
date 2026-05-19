@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 /** Get stored access token and client ID for QF API calls */
 export async function getQFHeaders(): Promise<Record<string, string> | null> {
@@ -75,13 +75,16 @@ const QF_BASE_API = process.env.QF_API_BASE
 
 /** Proxy a request with dynamic base */
 async function qfRequest(path: string, options: RequestInit = {}) {
-  const headers = await getQFHeaders();
-  if (!headers) throw new Error("Not authenticated with QF");
+  const reqHeaders = await getQFHeaders();
+  if (!reqHeaders) throw new Error("Not authenticated with QF");
+
+  const headerList = await headers();
+  const userTz = headerList.get("x-user-timezone") || headerList.get("x-vercel-ip-timezone") || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   // Add x-timezone for streak/activity calculations
   const tzHeaders = {
-    ...headers,
-    "x-timezone": Intl.DateTimeFormat().resolvedOptions().timeZone,
+    ...reqHeaders,
+    "x-timezone": userTz,
   };
 
   const res = await fetch(`${QF_BASE_API}${path}`, {

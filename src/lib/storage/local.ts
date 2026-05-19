@@ -67,6 +67,9 @@ export class LocalStorageProvider implements StorageProvider {
       return new Promise((resolve, reject) => {
         const transaction = this.db!.transaction(STORE_NAME, "readwrite");
         const store = transaction.objectStore(STORE_NAME);
+        const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: userTz, year: 'numeric', month: '2-digit', day: '2-digit' });
+        
         const entry = {
           root: word.root,
           first_surface_form: word.arabic,
@@ -79,7 +82,7 @@ export class LocalStorageProvider implements StorageProvider {
           srs_interval: 1,
           srs_repetitions: 0,
           srs_ease_factor: 2.5,
-          srs_next_review: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+          srs_next_review: formatter.format(new Date(Date.now() + 86400000)),
           learned_at: new Date().toISOString(),
           translation_en: word.translation || null,
           frequency_root: word.frequencyRoot || 0,
@@ -259,7 +262,9 @@ export class LocalStorageProvider implements StorageProvider {
 
       request.onsuccess = () => {
         const entries: VocabularyLedgerEntry[] = request.result;
-        const today = new Date().toISOString().split('T')[0];
+        const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: userTz, year: 'numeric', month: '2-digit', day: '2-digit' });
+        const today = formatter.format(new Date());
         
         const dueEntries = entries.filter(e => {
           const nextReview = e.srs_next_review || e.next_review;
@@ -279,9 +284,9 @@ export class LocalStorageProvider implements StorageProvider {
           ref: e.first_ayah_key || e.first_seen_ayah || "",
           hint: e.pos,
           xp: 10,
-          srs_interval: e.srs_interval || e.interval,
-          srs_repetitions: e.srs_repetitions || e.repetition,
-          srs_ease_factor: e.srs_ease_factor || e.ease_factor,
+          srs_interval: e.srs_interval ?? e.interval ?? 1,
+          srs_repetitions: e.srs_repetitions ?? e.repetition ?? 0,
+          srs_ease_factor: e.srs_ease_factor ?? e.ease_factor ?? 2.5,
         }));
         
         resolve(cards);
@@ -321,9 +326,9 @@ export class LocalStorageProvider implements StorageProvider {
           ref: e.first_ayah_key || e.first_seen_ayah || "",
           hint: e.pos,
           xp: 10,
-          srs_interval: e.srs_interval || e.interval,
-          srs_repetitions: e.srs_repetitions || e.repetition,
-          srs_ease_factor: e.srs_ease_factor || e.ease_factor,
+          srs_interval: e.srs_interval ?? e.interval ?? 1,
+          srs_repetitions: e.srs_repetitions ?? e.repetition ?? 0,
+          srs_ease_factor: e.srs_ease_factor ?? e.ease_factor ?? 2.5,
         }));
 
         resolve(cards);
@@ -345,12 +350,18 @@ export class LocalStorageProvider implements StorageProvider {
       request.onsuccess = () => {
         const entry = request.result;
         if (entry) {
-          const sm2 = calculateSM2(rating, entry.srs_interval || entry.interval || 1, entry.srs_repetitions || entry.repetition || 1, entry.srs_ease_factor || entry.ease_factor || 2.5);
+          const currentInt = entry.srs_interval ?? entry.interval ?? 1;
+          const currentRep = entry.srs_repetitions ?? entry.repetition ?? 0;
+          const currentEase = entry.srs_ease_factor ?? entry.ease_factor ?? 2.5;
+          const sm2 = calculateSM2(rating, currentInt, currentRep, currentEase);
           
+          const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: userTz, year: 'numeric', month: '2-digit', day: '2-digit' });
+
           entry.srs_interval = sm2.interval;
           entry.srs_repetitions = sm2.repetition;
           entry.srs_ease_factor = sm2.easeFactor;
-          entry.srs_next_review = addDays(new Date(), sm2.interval).toISOString().split('T')[0];
+          entry.srs_next_review = formatter.format(addDays(new Date(), sm2.interval));
           
           store.put(entry);
           
