@@ -184,20 +184,22 @@ export default function LedgerScreen({ storageMode, theme }: LedgerScreenProps) 
           <div className="flex justify-center items-center py-10">
             <div className="spinner" style={{ width: 24, height: 24, borderWidth: 3 }} />
           </div>
-        ) : filteredLedger.length === 0 ? (
-          <div className="text-center py-10">
-            <div className="text-[48px] mb-4">🏜️</div>
-            <h3 className={`text-[18px] font-black mb-2 ${isDark ? 'text-white' : 'text-text'}`}>No roots found</h3>
-            <p className={`text-[14px] ${isDark ? 'text-[#A1B2C3]' : 'text-text-light'}`}>
-              {searchQuery ? "Try a different search term." : "Start learning to build your dictionary!"}
-            </p>
-          </div>
         ) : (
           <div className="flex flex-col gap-3 pb-6">
             
             {/* --- KNOWN ROOTS TAB --- */}
             {activeTab === "roots" && (
               <>
+                {filteredLedger.length === 0 ? (
+                  <div className="text-center py-10">
+                    <div className="text-[48px] mb-4">🏜️</div>
+                    <h3 className={`text-[18px] font-black mb-2 ${isDark ? 'text-white' : 'text-text'}`}>No roots found</h3>
+                    <p className={`text-[14px] ${isDark ? 'text-[#A1B2C3]' : 'text-text-light'}`}>
+                      {searchQuery ? "Try a different search term." : "Start learning to build your dictionary!"}
+                    </p>
+                  </div>
+                ) : (
+                  <>
                 <div className={`text-[12px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-[#50728D]' : 'text-gray1'}`}>
                   {filteredLedger.length} Roots Known
                 </div>
@@ -288,6 +290,8 @@ export default function LedgerScreen({ storageMode, theme }: LedgerScreenProps) 
                 </div>
               );
             })}
+              </>
+                )}
             </>
             )}
 

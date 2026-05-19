@@ -66,6 +66,12 @@ export interface VocabularyDecision {
   decided_at: string;
 }
 
+export interface SurahProgress {
+  completedSurahs: number[];      // surah IDs that are fully completed
+  currentSurahId: number;         // the surah the user is currently working on
+  surahAyahMap: Record<number, number>; // surahId → last completed verse number (0 = not started)
+}
+
 export interface StorageProvider {
   /** Check if the provider is initialized/ready */
   init(): Promise<void>;
@@ -99,6 +105,12 @@ export interface StorageProvider {
 
   /** Save current reading position */
   saveCurrentAyah(ayahKey: string): Promise<void>;
+
+  /** Get per-surah progress */
+  getSurahProgress(): Promise<SurahProgress>;
+
+  /** Save per-surah progress */
+  saveSurahProgress(progress: SurahProgress): Promise<void>;
 
   /** Get daily goal progress for today */
   getDailyGoal(): Promise<{ xp_earned: number; completed: boolean }>;

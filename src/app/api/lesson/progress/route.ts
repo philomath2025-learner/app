@@ -56,22 +56,7 @@ export async function POST(request: NextRequest) {
 
     // (Removed redundant insert into vocabulary_decisions here because it's handled properly by the batch saveAllDecisions at the end of the Ayah)
 
-    // 3. Update User Progress XP (assuming +10 per new root)
-    // First fetch current XP
-    const { data: progress } = await supabaseAdmin
-      .from("user_progress")
-      .select("xp, vocabulary_count")
-      .eq("user_id", profile.id)
-      .single();
 
-    if (progress) {
-      // @ts-ignore
-      await supabaseAdmin.from("user_progress").update({
-        xp: progress.xp + 10,
-        vocabulary_count: progress.vocabulary_count + 1,
-        last_activity_date: new Date().toISOString()
-      }).eq("user_id", profile.id);
-    }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

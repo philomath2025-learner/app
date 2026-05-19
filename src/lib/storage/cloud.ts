@@ -1,4 +1,4 @@
-import { StorageProvider, VocabularyLedgerEntry, LearnedWord, ReviewCard } from "./interface";
+import { StorageProvider, VocabularyLedgerEntry, LearnedWord, ReviewCard, SurahProgress } from "./interface";
 
 export class CloudStorageProvider implements StorageProvider {
   async init(): Promise<void> {
@@ -39,8 +39,19 @@ export class CloudStorageProvider implements StorageProvider {
   }
 
   async saveDecisions(decisions: import("./interface").VocabularyDecision[]): Promise<void> {
+    if (decisions.length === 0) return;
+    
+    // Always persist locally as fallback
+    if (typeof window !== "undefined") {
+      try {
+        const existing = JSON.parse(localStorage.getItem("quranlingo_decisions") || "[]");
+        const merged = [...existing, ...decisions];
+        localStorage.setItem("quranlingo_decisions", JSON.stringify(merged));
+      } catch { /* ignore */ }
+    }
+    
+    // Also try cloud
     try {
-      if (decisions.length === 0) return;
       await fetch("/api/lesson/decisions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,33 +63,66 @@ export class CloudStorageProvider implements StorageProvider {
   }
 
   async getDecisions(): Promise<import("./interface").VocabularyDecision[]> {
+    // Try cloud first
     try {
       const res = await fetch("/api/lesson/decisions", { cache: "no-store" });
-      if (!res.ok) return [];
-      const data = await res.json();
-      return data.decisions || [];
+      if (res.ok) {
+        const data = await res.json();
+        if (data.decisions && data.decisions.length > 0) {
+          return data.decisions;
+        }
+      }
     } catch (err) {
       console.error("Failed to fetch decisions from cloud:", err);
-      return [];
     }
+    
+    // Fallback to localStorage
+    if (typeof window !== "undefined") {
+      try {
+        const data = localStorage.getItem("quranlingo_decisions");
+        if (data) return JSON.parse(data);
+      } catch { /* ignore */ }
+    }
+    return [];
   }
 
   async updateXP(amount: number): Promise<void> {
-    // Supabase backend will calculate total XP, but we can hit an endpoint
-    // to manually add if necessary, or let markWordLearned handle it.
-    // For now, let's just make a dedicated XP endpoint if needed, or ignore.
-    return;
+    // Persist to localStorage as reliable fallback
+    if (typeof window !== "undefined") {
+      const current = parseInt(localStorage.getItem("quranlingo_xp") || "0", 10);
+      localStorage.setItem("quranlingo_xp", String(current + amount));
+    }
+    
+    // Sync XP to cloud backend
+    try {
+      await fetch("/api/user/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ xpToAdd: amount }),
+      });
+    } catch (err) {
+      console.error("Failed to sync XP to cloud:", err);
+    }
   }
 
   async getXP(): Promise<number> {
+    // Try cloud first
     try {
       const res = await fetch("/api/user/progress", { cache: "no-store" });
-      if (!res.ok) return 0;
-      const data = await res.json();
-      return data.xp || 0;
+      if (res.ok) {
+        const data = await res.json();
+        if (data.xp !== undefined && data.xp !== null) return data.xp;
+      }
     } catch (err) {
-      return 0;
+      // fall through to localStorage
     }
+    
+    // Fallback to localStorage
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("quranlingo_xp");
+      if (saved) return parseInt(saved, 10);
+    }
+    return 0;
   }
 
   async getHearts(): Promise<{ count: number; lastRefill: string }> {
@@ -127,6 +171,48 @@ export class CloudStorageProvider implements StorageProvider {
       });
     } catch (err) {
       console.error("Failed to save current ayah to cloud:", err);
+    }
+  }
+
+  async getSurahProgress(): Promise<SurahProgress> {
+    const defaults: SurahProgress = { completedSurahs: [], currentSurahId: 1, surahAyahMap: { 1: 0 } };
+    
+    // Try cloud first (per-user)
+    try {
+      const res = await fetch("/api/user/surah-progress", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && (data.completedSurahs || data.surahAyahMap)) {
+          return { ...defaults, ...data };
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch surah progress from cloud:", err);
+    }
+    
+    // Fallback to localStorage
+    if (typeof window !== "undefined") {
+      const data = localStorage.getItem("quranlingo_surah_progress");
+      if (data) { try { return { ...defaults, ...JSON.parse(data) }; } catch { /* ignore */ } }
+    }
+    return defaults;
+  }
+
+  async saveSurahProgress(progress: SurahProgress): Promise<void> {
+    // Save to localStorage as fallback
+    if (typeof window !== "undefined") {
+      localStorage.setItem("quranlingo_surah_progress", JSON.stringify(progress));
+    }
+    
+    // Save to cloud (per-user)
+    try {
+      await fetch("/api/user/surah-progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(progress),
+      });
+    } catch (err) {
+      console.error("Failed to save surah progress to cloud:", err);
     }
   }
 

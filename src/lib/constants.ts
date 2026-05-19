@@ -101,7 +101,7 @@ export const ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
 // ── Nav Items ──
 export const NAV_ITEMS = [
   { id: "home", icon: "🏠", label: "Home" },
-  { id: "map", icon: "🗺", label: "Juz Map" },
+  { id: "map", icon: "🛤️", label: "Learning Path" },
   { id: "quiz", icon: "🧠", label: "Review" },
   { id: "lesson", icon: "📖", label: "Lesson" },
   { id: "rooms", icon: "👥", label: "Rooms" },
@@ -109,4 +109,4 @@ export const NAV_ITEMS = [
   { id: "settings", icon: "⚙️", label: "Settings" },
 ] as const;
 
-export type ScreenId = (typeof NAV_ITEMS)[number]["id"] | "profile" | "dedup" | "glossika";
+export type ScreenId = (typeof NAV_ITEMS)[number]["id"] | "profile" | "dedup" | "glossika" | "surah-picker";

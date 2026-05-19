@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getLevel, getNextLevel, getAbsoluteAyah, LEVELS } from "@/lib/constants";
+import { getLevel, getNextLevel, LEVELS } from "@/lib/constants";
 import { getStorageProvider } from "@/lib/storage";
 import type { ReviewCard } from "@/lib/storage/interface";
+import { getSurahById } from "@/data/surah-data";
 
 interface HomeScreenProps {
   xp: number;
@@ -16,12 +17,15 @@ interface HomeScreenProps {
   onStartReview: () => void;
   onStartLesson: (ref: string) => void;
   onNavigateToRooms: () => void;
+  onPickSurah: () => void;
+  completedSurahs: number[];
+  completedAyahCount: number;
 }
 
-export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah, storageMode, theme, onStartReview, onStartLesson, onNavigateToRooms }: HomeScreenProps) {
+export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah, storageMode, theme, onStartReview, onStartLesson, onNavigateToRooms, onPickSurah, completedSurahs, completedAyahCount }: HomeScreenProps) {
   const isDark = theme === "dark";
   
-  const absAyahs = getAbsoluteAyah(currentAyah);
+  const absAyahs = completedAyahCount;
   const lv = getLevel(absAyahs);
   const nx = getNextLevel(absAyahs);
   const ayahsToNext = nx ? nx.minAyahs - absAyahs : 0;
@@ -54,8 +58,9 @@ export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah,
 
   // Format current ayah for display
   const [surahNum] = currentAyah.split(":");
+  const currentSurah = getSurahById(parseInt(surahNum));
   
-  const pct = targetXp > 0 ? Math.min(100, Math.round((dailyXp / targetXp) * 100)) : 0;
+  const pct = targetXp > 0 ? Math.round((dailyXp / targetXp) * 100) : 0;
 
   return (
     <div className={`flex-1 overflow-y-auto p-4 transition-colors duration-300 ${isDark ? 'bg-[#0B1121]' : 'bg-[#F0F4F8]'}`}>
@@ -80,7 +85,7 @@ export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah,
           <span className={`text-[12px] font-black uppercase tracking-wider ${isDark ? 'text-[#50728D]' : 'text-text'}`}>Daily Goal</span>
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] font-bold text-gray-400">{dailyXp} / {targetXp} XP</span>
-            <span className="text-[12px] font-black text-green-dark">{pct}%</span>
+            <span className={`text-[12px] font-black ${pct >= 100 ? 'text-green-dark' : ''}`}>{pct}%</span>
           </div>
         </div>
         <div className="flex gap-1">
@@ -93,7 +98,7 @@ export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah,
         </div>
         {pct >= 100 && (
           <div className="mt-2 text-[10px] font-black text-green-dark uppercase tracking-widest text-center animate-bounce">
-            🎉 Daily Goal Met!
+            {pct > 100 ? '🚀 Daily Goal Exceeded!' : '🎉 Daily Goal Met!'}
           </div>
         )}
       </div>
@@ -116,10 +121,34 @@ export default function HomeScreen({ xp, dailyXp, targetXp, streak, currentAyah,
       {/* Continue Learning */}
       <button
         onClick={() => onStartLesson(currentAyah)}
-        className="cta-btn mb-3 w-full"
+        className="cta-btn mb-2 w-full"
       >
-        ▶ Continue Learning · {currentAyah}
+        ▶ Continue · {currentSurah ? currentSurah.nameEn : `Surah ${surahNum}`} · {currentAyah}
       </button>
+
+      {/* Switch Surah — only show if Fatiha is complete AND current surah is complete */}
+      {completedSurahs.includes(1) && completedSurahs.includes(parseInt(surahNum)) ? (
+        <button
+          onClick={onPickSurah}
+          className={`w-full py-3 mb-3 rounded-2xl text-[13px] font-extrabold tracking-wide transition-all border-2 ${
+            isDark ? 'border-[#1E314A] text-[#60E0C1] hover:border-[#60E0C1]/40' : 'border-gray-200 text-blue hover:border-blue/30'
+          }`}
+        >
+          📚 Choose a Different Surah
+        </button>
+      ) : !completedSurahs.includes(1) ? (
+        <div className={`w-full py-3 mb-3 rounded-2xl text-[12px] font-bold tracking-wide text-center ${
+          isDark ? 'text-[#50728D]' : 'text-text-light'
+        }`}>
+          🔒 Complete Al-Fatiha to unlock the Surah Picker
+        </div>
+      ) : (
+        <div className={`w-full py-3 mb-3 rounded-2xl text-[12px] font-bold tracking-wide text-center ${
+          isDark ? 'text-[#50728D]' : 'text-text-light'
+        }`}>
+          📖 Finish {currentSurah?.nameEn || 'current surah'} to pick another
+        </div>
+      )}
 
       {/* Rooms & Competitions Banner */}
       <button

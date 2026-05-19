@@ -11,7 +11,7 @@ import type { LangCode } from "./constants";
 // UI strings — ALWAYS English (Rule 3)
 const UI_STRINGS: Record<string, string> = {
   home: "Home",
-  map: "Juz Map",
+  map: "Learning Path",
   review: "Review",
   lesson: "Lesson",
   ledger: "Vocabulary",

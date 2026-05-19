@@ -38,14 +38,14 @@ export function runDedupEngine(
     const pos = word.morphology?.pos || "particle";
     const knownEntry = knownLedger.get(root);
 
-    // Particle logic
-    if (pos === "particle" || !word.morphology?.root) {
+    // Particle logic - only skip if it has NEITHER a root NOR a lemma
+    if (!word.morphology?.root && !word.morphology?.lemma) {
       return { 
         ...word, 
         status: "particle", 
         verdict: "skip", 
         rule: "L1", 
-        reason: `${word.morphology?.pos || "particle"} — function particle` 
+        reason: `${pos} — no root or lemma` 
       };
     }
 

@@ -22,9 +22,16 @@ export async function GET(request: NextRequest) {
 
     if (!profile) return NextResponse.json({ display_initial: "A" }, { status: 404 });
 
+    // Count actual roots learned from vocabulary_ledger (live, not stale counter)
+    const { count: rootsCount } = await supabaseAdmin
+      .from("vocabulary_ledger")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", profile.id);
+
+    // Get level_name from progress
     const { data: progress } = await supabaseAdmin
       .from("user_progress")
-      .select("total_roots_learned, level_name")
+      .select("level_name")
       .eq("user_id", profile.id)
       .single();
 
@@ -32,7 +39,7 @@ export async function GET(request: NextRequest) {
       display_name: profile.display_name,
       display_initial: profile.display_initial,
       created_at: profile.created_at,
-      total_roots_learned: progress?.total_roots_learned || 0,
+      total_roots_learned: rootsCount || 0,
       level_name: progress?.level_name || "Mubtadi"
     });
   } catch (error) {

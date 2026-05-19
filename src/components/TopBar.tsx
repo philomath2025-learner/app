@@ -1,6 +1,8 @@
 "use client";
 
-import { getLevel, getNextLevel, getAbsoluteAyah } from "@/lib/constants";
+
+
+import { getSurahById } from "@/data/surah-data";
 
 interface TopBarProps {
   xp: number;
@@ -10,17 +12,22 @@ interface TopBarProps {
   displayInitial: string;
   theme: "light" | "dark";
   onProfileClick: () => void;
-  currentAyah?: string; // Make optional for backwards compatibility
+  currentAyah?: string;
+  /** Actual completed ayah count from surah progress (not canonical) */
+  completedAyahCount?: number;
 }
 
-export default function TopBar({ xp, hearts, streakDays, juzLabel, displayInitial, theme, onProfileClick, currentAyah = "1:1" }: TopBarProps) {
+export default function TopBar({ xp, hearts, streakDays, juzLabel, displayInitial, theme, onProfileClick, currentAyah = "1:1", completedAyahCount }: TopBarProps) {
   const isDark = theme === "dark";
-  const absAyahs = getAbsoluteAyah(currentAyah);
-  const lv = getLevel(absAyahs);
-  const nx = getNextLevel(absAyahs);
-  const base = lv.minAyahs;
-  const cap = nx ? nx.minAyahs : lv.minAyahs + 500;
-  const pct = Math.min(100, Math.round(((absAyahs - base) / (cap - base)) * 100));
+
+  // Use actual completed count from surah progress if provided, else fallback
+  const absAyahs = completedAyahCount ?? 0;
+  const pct = Math.min(100, (absAyahs / 6236) * 100);
+
+  // Show current surah name instead of juz label
+  const [surahStr] = currentAyah.split(":");
+  const surah = getSurahById(parseInt(surahStr));
+  const locationLabel = surah ? `${surah.nameEn} · ${currentAyah}` : juzLabel;
 
   const heartsDisplay = Array.from({ length: 5 }, (_, i) => (i < hearts ? "❤️" : "🖤")).join("");
 
@@ -29,7 +36,7 @@ export default function TopBar({ xp, hearts, streakDays, juzLabel, displayInitia
       {/* Row 1 */}
       <div className="flex items-center justify-between mb-2">
         <span className="text-[12px] font-extrabold text-text-light tracking-wide uppercase">
-          {juzLabel}
+          {locationLabel}
         </span>
         <div className="flex items-center gap-2">
           <span className="text-[16px] tracking-tight">{heartsDisplay}</span>
@@ -53,8 +60,8 @@ export default function TopBar({ xp, hearts, streakDays, juzLabel, displayInitia
             style={{ width: `${pct}%` }}
           />
         </div>
-        <span className="text-[11px] font-extrabold text-green-dark min-w-[50px] text-right">
-          {absAyahs} Ayahs
+        <span className="text-[11px] font-extrabold text-green-dark min-w-[70px] text-right">
+          {absAyahs}/6236 Ayahs
         </span>
       </div>
     </div>

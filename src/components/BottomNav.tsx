@@ -19,7 +19,7 @@ export default function BottomNav({ activeScreen, theme, onNavigate }: BottomNav
             key={item.id}
             id={`nav-${item.id}`}
             onClick={() => onNavigate(item.id as ScreenId)}
-            className={`flex-1 py-2 px-[1px] text-[8px] font-bold border-none bg-none cursor-pointer flex flex-col items-center gap-[2px] tracking-wide uppercase font-[DM_Sans] transition-colors duration-150 ${
+            className={`flex-1 py-2 px-[1px] text-[8px] font-bold border-none bg-none cursor-pointer flex flex-col items-center gap-[2px] tracking-tight uppercase font-[DM_Sans] transition-colors duration-150 whitespace-nowrap ${
               isActive ? "text-blue" : "text-gray1"
             }`}
           >

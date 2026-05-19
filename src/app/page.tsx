@@ -10,12 +10,14 @@ import ReviewScreen from "@/components/screens/ReviewScreen";
 import LessonScreen from "@/components/screens/LessonScreen";
 import OnboardingScreen from "@/components/screens/OnboardingScreen";
 import LedgerScreen from "@/components/screens/LedgerScreen";
-import JuzMapScreen from "@/components/screens/JuzMapScreen";
+import LearningPathScreen from "@/components/screens/LearningPathScreen";
 import ProfileScreen from "@/components/screens/ProfileScreen";
 import RoomsScreen from "@/components/screens/RoomsScreen";
+import SurahPickerScreen from "@/components/screens/SurahPickerScreen";
 import { getStorageProvider } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 import { getJuzInfo } from "@/lib/quran";
+import { getSurahById } from "@/data/surah-data";
 
 function getCookie(name: string) {
   if (typeof document === "undefined") return null;
@@ -25,7 +27,7 @@ function getCookie(name: string) {
 
 export default function App() {
   const [screen, setScreen] = useState<ScreenId>("home");
-  const [xp, setXp] = useState(310);
+  const [xp, setXp] = useState(0);
   const [dailyXp, setDailyXp] = useState(0);
   const [hearts, setHearts] = useState(5);
   const [lastHeartRefill, setLastHeartRefill] = useState<string>(new Date().toISOString());
@@ -43,6 +45,10 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [storageMode, setStorageMode] = useState<"guest" | "cloud">("cloud");
+
+  // Surah progress
+  const [completedAyahCount, setCompletedAyahCount] = useState(0);
+  const [completedSurahs, setCompletedSurahs] = useState<number[]>([]);
 
   // XP popup
   const [xpMsg, setXpMsg] = useState("");
@@ -105,7 +111,13 @@ export default function App() {
   }, [storageMode]);
 
   const awardXP = useCallback((amount: number, msg: string) => {
-    setXp((prev) => prev + amount);
+    setXp((prev) => {
+      const next = prev + amount;
+      // Persist total XP to storage
+      const provider = getStorageProvider(storageMode);
+      provider.updateXP(amount);
+      return next;
+    });
     setDailyXp((prev) => {
       const next = prev + amount;
       const provider = getStorageProvider(storageMode);
@@ -126,7 +138,7 @@ export default function App() {
     });
   }, [storageMode, lastHeartRefill]);
 
-  const startLesson = useCallback((ayahKey?: string) => {
+  const startLesson = useCallback(async (ayahKey?: string) => {
     if (hearts <= 0) {
       alert("You are out of hearts! ❤️ Wait for them to refill or practice old words in the Review tab to keep your momentum going.");
       return;
@@ -135,9 +147,79 @@ export default function App() {
       setCurrentAyah(ayahKey);
       const provider = getStorageProvider(storageMode);
       provider.saveCurrentAyah(ayahKey);
+      
+      // Track per-surah progress
+      const [surahStr, verseStr] = ayahKey.split(":");
+      const surahId = parseInt(surahStr);
+      const verse = parseInt(verseStr);
+      const progress = await provider.getSurahProgress();
+      progress.currentSurahId = surahId;
+      // Only update if this is further than before
+      const prevVerse = progress.surahAyahMap[surahId] || 0;
+      if (verse > 1 && verse - 1 > prevVerse) {
+        progress.surahAyahMap[surahId] = verse - 1;
+      }
+      await provider.saveSurahProgress(progress);
+      
+      // Update React state so TopBar reflects immediately
+      let totalCompleted = 0;
+      for (const [, versesDone] of Object.entries(progress.surahAyahMap)) {
+        totalCompleted += Number(versesDone);
+      }
+      setCompletedAyahCount(totalCompleted);
     }
     setScreen("lesson");
   }, [storageMode, hearts]);
+
+  const handleSurahSelect = useCallback(async (surahId: number) => {
+    const ayahKey = `${surahId}:1`;
+    const provider = getStorageProvider(storageMode);
+    
+    // Load existing progress and update current surah
+    const progress = await provider.getSurahProgress();
+    const currentVerse = progress.surahAyahMap[surahId] || 0;
+    const surah = getSurahById(surahId);
+    const isCompleted = progress.completedSurahs.includes(surahId);
+    
+    // If completed or not started, start from verse 1; otherwise resume
+    const resumeKey = isCompleted ? `${surahId}:1` : (currentVerse > 0 ? `${surahId}:${currentVerse + 1}` : `${surahId}:1`);
+    // Clamp to max verse
+    const maxVerse = surah?.verses || 999;
+    const [s, v] = resumeKey.split(":").map(Number);
+    const safeKey = v > maxVerse ? `${surahId}:1` : resumeKey;
+    
+    progress.currentSurahId = surahId;
+    if (!progress.surahAyahMap[surahId]) progress.surahAyahMap[surahId] = 0;
+    await provider.saveSurahProgress(progress);
+    
+    setCurrentAyah(safeKey);
+    await provider.saveCurrentAyah(safeKey);
+    startLesson(safeKey);
+  }, [storageMode, startLesson]);
+
+  const handleSurahComplete = useCallback(async (surahId: number) => {
+    const provider = getStorageProvider(storageMode);
+    const progress = await provider.getSurahProgress();
+    
+    // Mark surah as completed
+    if (!progress.completedSurahs.includes(surahId)) {
+      progress.completedSurahs.push(surahId);
+    }
+    const surah = getSurahById(surahId);
+    if (surah) progress.surahAyahMap[surahId] = surah.verses;
+    
+    await provider.saveSurahProgress(progress);
+    
+    // Update React state so TopBar/HomeScreen reflect immediately
+    setCompletedSurahs([...progress.completedSurahs]);
+    let totalCompleted = 0;
+    for (const [, versesDone] of Object.entries(progress.surahAyahMap)) {
+      totalCompleted += Number(versesDone);
+    }
+    setCompletedAyahCount(totalCompleted);
+    
+    setScreen("surah-picker");
+  }, [storageMode]);
 
   useEffect(() => {
     // If QF redirects here with ?code=...&state=..., bounce it to our API route
@@ -186,15 +268,25 @@ export default function App() {
   useEffect(() => {
     async function loadUser() {
       if (isLoggedIn === null) return;
-      if (!isLoggedIn && storageMode !== "guest") return;
 
       const provider = getStorageProvider(storageMode);
-      
+
+      // Always load local/fallback data first (works for guest mode AND cloud mode with localStorage fallback)
       const savedXp = await provider.getXP();
       setXp(savedXp);
 
       const ayah = await provider.getCurrentAyah();
       setCurrentAyah(ayah);
+
+      // Load surah progress for accurate ayah counting
+      const surahProg = await provider.getSurahProgress();
+      setCompletedSurahs(surahProg.completedSurahs);
+      // Calculate actual completed ayahs from surahAyahMap
+      let totalCompleted = 0;
+      for (const [, versesDone] of Object.entries(surahProg.surahAyahMap)) {
+        totalCompleted += Number(versesDone);
+      }
+      setCompletedAyahCount(totalCompleted);
 
       const h = await provider.getHearts();
       setHearts(h.count);
@@ -211,7 +303,8 @@ export default function App() {
       if (prefs.reviewLimit) setReviewLimit(prefs.reviewLimit);
       if (prefs.newWordsLimit) setNewWordsLimit(prefs.newWordsLimit);
 
-      if (storageMode === "cloud") {
+      // Only attempt cloud-specific data if logged in
+      if (isLoggedIn && storageMode === "cloud") {
         try {
           const res = await fetch("/api/user/profile");
           if (res.ok) {
@@ -245,11 +338,29 @@ export default function App() {
       try {
         const provider = getStorageProvider(storageMode);
         await provider.clearAllProgress();
-        // Also explicitly reset the current ayah in storage
+        // Also explicitly reset the current ayah and surah progress
         await provider.saveCurrentAyah("1:1");
+        await provider.saveSurahProgress({ completedSurahs: [], currentSurahId: 1, surahAyahMap: { 1: 0 } });
+        // Clear local decisions fallback, XP, surah progress, and goals
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("quranlingo_decisions");
+          localStorage.removeItem("quranlingo_xp");
+          localStorage.removeItem("quranlingo_surah_progress");
+          // Clear all goal keys
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith("quranlingo_goal_")) {
+              localStorage.removeItem(key);
+              i--; // Adjust index after removal
+            }
+          }
+        }
         // Reset React state
         setXp(0);
+        setDailyXp(0);
         setCurrentAyah("1:1");
+        setCompletedAyahCount(0);
+        setCompletedSurahs([]);
         setScreen("home");
         // Reload to force a fresh data fetch everywhere
         setTimeout(() => window.location.reload(), 300);
@@ -289,6 +400,7 @@ export default function App() {
           theme={theme}
           onProfileClick={() => navigate("profile")}
           currentAyah={currentAyah}
+          completedAyahCount={completedAyahCount}
         />
 
         {/* XP Popup */}
@@ -311,6 +423,9 @@ export default function App() {
             onStartReview={() => navigate("quiz")}
             onStartLesson={startLesson}
             onNavigateToRooms={() => navigate("rooms")}
+            onPickSurah={() => navigate("surah-picker")}
+            completedSurahs={completedSurahs}
+            completedAyahCount={completedAyahCount}
           />
         )}
 
@@ -326,6 +441,7 @@ export default function App() {
             onAwardXP={awardXP}
             onLoseHeart={loseHeart}
             onNextAyah={startLesson}
+            onSurahComplete={handleSurahComplete}
           />
         )}
 
@@ -366,11 +482,20 @@ export default function App() {
         )}
 
         {screen === "map" && (
-          <JuzMapScreen
+          <LearningPathScreen
             currentAyah={currentAyah}
             storageMode={storageMode}
             theme={theme}
             onNavigate={navigate}
+          />
+        )}
+
+        {screen === "surah-picker" && (
+          <SurahPickerScreen
+            theme={theme}
+            storageMode={storageMode}
+            onSelectSurah={handleSurahSelect}
+            onGoHome={() => navigate("home")}
           />
         )}
 
@@ -382,6 +507,7 @@ export default function App() {
             storageMode={storageMode}
             currentAyah={currentAyah}
             onGoHome={() => navigate("home")}
+            completedAyahCount={completedAyahCount}
           />
         )}
 

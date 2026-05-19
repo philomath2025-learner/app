@@ -92,9 +92,8 @@ export async function GET(
     if (chapter) {
       if (verseNum < chapter.verses_count) {
         nextAyahKey = `${chapterId}:${verseNum + 1}`;
-      } else if (chapterId < 114) {
-        nextAyahKey = `${chapterId + 1}:1`;
       }
+      // No auto-advance to next chapter — surah picker handles this
     }
 
     return NextResponse.json({

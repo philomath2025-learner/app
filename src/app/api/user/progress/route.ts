@@ -62,12 +62,28 @@ export async function POST(request: NextRequest) {
     if (!profile) return NextResponse.json({ error: "Unauthorized profile" }, { status: 401 });
 
     const body = await request.json();
-    const { currentAyah, hearts, hearts_refill_at } = body;
+    const { currentAyah, hearts, hearts_refill_at, xpToAdd } = body;
 
     const updateData: any = {};
     if (currentAyah) updateData.current_ayah = currentAyah;
     if (hearts !== undefined) updateData.hearts = hearts;
     if (hearts_refill_at) updateData.hearts_refill_at = hearts_refill_at;
+
+    if (xpToAdd) {
+      const { data: progress } = await supabaseAdmin
+        .from("user_progress")
+        .select("xp, total_words_learned")
+        .eq("user_id", profile.id)
+        .single();
+        
+      if (progress) {
+        updateData.xp = progress.xp + xpToAdd;
+        // Optionally bump vocab count if this was a new word (we assume 10 XP = new word for now)
+        if (xpToAdd === 10) {
+           updateData.total_words_learned = (progress.total_words_learned || 0) + 1;
+        }
+      }
+    }
 
     if (Object.keys(updateData).length > 0) {
       await supabaseAdmin

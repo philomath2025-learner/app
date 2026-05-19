@@ -1,4 +1,4 @@
-import { StorageProvider, LearnedWord, VocabularyLedgerEntry, ReviewCard } from "./interface";
+import { StorageProvider, LearnedWord, VocabularyLedgerEntry, ReviewCard, SurahProgress } from "./interface";
 import { calculateSM2, ReviewRating, addDays } from "../srs";
 
 const DB_NAME = "QuranLingoDB";
@@ -187,6 +187,27 @@ export class LocalStorageProvider implements StorageProvider {
     }
   }
 
+  async getSurahProgress(): Promise<SurahProgress> {
+    const defaults: SurahProgress = {
+      completedSurahs: [],
+      currentSurahId: 1,
+      surahAyahMap: { 1: 0 },
+    };
+    if (typeof window !== "undefined") {
+      const data = localStorage.getItem("quranlingo_surah_progress");
+      if (data) {
+        try { return { ...defaults, ...JSON.parse(data) }; } catch { /* ignore */ }
+      }
+    }
+    return defaults;
+  }
+
+  async saveSurahProgress(progress: SurahProgress): Promise<void> {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("quranlingo_surah_progress", JSON.stringify(progress));
+    }
+  }
+
   async getDailyGoal(): Promise<{ xp_earned: number; completed: boolean }> {
     if (typeof window !== "undefined") {
       const today = new Date().toISOString().split('T')[0];
@@ -307,16 +328,25 @@ export class LocalStorageProvider implements StorageProvider {
     if (!this.db) return;
     
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(STORE_NAME, "readwrite");
-      const store = transaction.objectStore(STORE_NAME);
-      
-      store.clear();
+      const transaction = this.db!.transaction([STORE_NAME, "vocabulary_decisions"], "readwrite");
+      transaction.objectStore(STORE_NAME).clear();
+      transaction.objectStore("vocabulary_decisions").clear();
 
       transaction.oncomplete = () => {
         this.xp = 0;
         if (typeof window !== "undefined") {
           localStorage.removeItem("quranlingo_xp");
           localStorage.removeItem("quranlingo_current_ayah");
+          localStorage.removeItem("quranlingo_surah_progress");
+          localStorage.removeItem("quranlingo_decisions");
+          // Clear all goal keys
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith("quranlingo_goal_")) {
+              localStorage.removeItem(key);
+              i--; // Adjust index after removal
+            }
+          }
         }
         resolve();
       };

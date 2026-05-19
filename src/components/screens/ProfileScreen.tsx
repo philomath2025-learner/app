@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getStorageProvider } from "@/lib/storage";
-import { getLevel, getNextLevel, getAbsoluteAyah } from "@/lib/constants";
+import { getLevel, getNextLevel } from "@/lib/constants";
 
 interface ProfileScreenProps {
   xp: number;
@@ -11,9 +11,10 @@ interface ProfileScreenProps {
   storageMode: "guest" | "cloud";
   currentAyah: string;
   onGoHome: () => void;
+  completedAyahCount: number;
 }
 
-export default function ProfileScreen({ xp, streak, theme, storageMode, currentAyah, onGoHome }: ProfileScreenProps) {
+export default function ProfileScreen({ xp, streak, theme, storageMode, currentAyah, onGoHome, completedAyahCount }: ProfileScreenProps) {
   const isDark = theme === "dark";
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState<{ date: string; xp_earned: number }[]>([]);
@@ -41,13 +42,14 @@ export default function ProfileScreen({ xp, streak, theme, storageMode, currentA
             setProfile(data);
           }
         } else {
-          // Fallback for guest
+          // Fallback for guest — fetch actual roots from local ledger
+          const knownRoots = await provider.getKnownRoots();
           setProfile({
             display_name: "Guest Learner",
             display_initial: "G",
             created_at: new Date().toISOString(),
-            total_roots_learned: 0, // This could be fetched from local ledger if needed
-            level_name: getLevel(getAbsoluteAyah(currentAyah)).name,
+            total_roots_learned: knownRoots.size,
+            level_name: getLevel(completedAyahCount).name,
           });
         }
       } catch (err) {
@@ -76,8 +78,8 @@ export default function ProfileScreen({ xp, streak, theme, storageMode, currentA
 
   const joinDate = profile ? new Date(profile.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long' }) : "";
   
-  // Progress Bar Calculations
-  const absAyahs = getAbsoluteAyah(currentAyah);
+  // Progress Bar Calculations — use same source as TopBar/HomeScreen
+  const absAyahs = completedAyahCount;
   const currentLevel = getLevel(absAyahs);
   const nextLevel = getNextLevel(absAyahs);
   let progressPercent = 100;

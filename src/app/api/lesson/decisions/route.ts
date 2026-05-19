@@ -28,10 +28,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
 
-    const payloadDecisions = decisions.map((d: any) => ({
-      ...d,
-      user_id: profile.id,
-    }));
+    const payloadDecisions = decisions.map((d: any) => {
+      // Strip client-only fields that don't exist in the DB schema
+      const { rule, ...dbFields } = d;
+      return {
+        ...dbFields,
+        user_id: profile.id,
+      };
+    });
 
     // @ts-ignore
     const { error } = await supabaseAdmin.from("vocabulary_decisions").upsert(payloadDecisions, { onConflict: "user_id, ayah_key, word_position" });

@@ -49,6 +49,7 @@ interface LessonScreenProps {
   onAwardXP: (amount: number, msg: string) => void;
   onLoseHeart: () => void;
   onNextAyah: (nextKey: string) => void;
+  onSurahComplete: (surahId: number) => void;
 }
 
 type Tab = "Meaning" | "Context" | "Tafsir";
@@ -63,7 +64,7 @@ function getShortTafsir(text: string) {
 
 
 
-export default function LessonScreen({ ayahKey, lang, translationId, tafsirId, theme, storageMode, onGoHome, onAwardXP, onLoseHeart, onNextAyah }: LessonScreenProps) {
+export default function LessonScreen({ ayahKey, lang, translationId, tafsirId, theme, storageMode, onGoHome, onAwardXP, onLoseHeart, onNextAyah, onSurahComplete }: LessonScreenProps) {
   const [data, setData] = useState<LessonData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -175,7 +176,6 @@ export default function LessonScreen({ ayahKey, lang, translationId, tafsirId, t
         });
         
         const xpAmount = word.status === "new" ? 10 : 5;
-        await provider.updateXP(xpAmount);
         onAwardXP(xpAmount, `+${xpAmount} XP`);
 
         trackEvent("word_learned", { 
@@ -209,7 +209,9 @@ export default function LessonScreen({ ayahKey, lang, translationId, tafsirId, t
     if (data?.nextAyahKey) {
       onNextAyah(data.nextAyahKey);
     } else {
-      onGoHome();
+      // End of surah — trigger surah picker
+      const surahId = parseInt(ayahKey.split(":")[0]);
+      onSurahComplete(surahId);
     }
   };
 
@@ -235,18 +237,25 @@ export default function LessonScreen({ ayahKey, lang, translationId, tafsirId, t
       const saveAllDecisions = async () => {
         try {
           const provider = getStorageProvider(storageMode);
-          const decisions = data.words.map((w: any) => ({
-            ayah_key: data.ayahKey,
-            word_position: w.position,
-            arabic: w.arabic,
-            root: w.morphology?.root || w.morphology?.lemma || w.arabic,
-            dedup_level: w.rule === "NEW" ? 0 : parseInt(String(w.rule).replace(/[^0-9]/g, '') || '1', 10),
-            rule: w.rule,
-            verdict: w.verdict,
-            reason: w.reason,
-            xp_awarded: w.verdict === "NEW" ? 10 : (w.verdict === "reinforce" ? 5 : 0),
-            decided_at: new Date().toISOString(),
-          }));
+          const decisions = data.words.map((w: any) => {
+            // Normalize verdict to match DB CHECK constraint: 'new', 'reinforce', 'particle'
+            let dbVerdict = (w.verdict || "particle").toLowerCase() as "new" | "reinforce" | "particle";
+            if (dbVerdict === ("skip" as any)) dbVerdict = "particle";
+
+            return {
+              ayah_key: data.ayahKey,
+              word_position: w.position,
+              arabic: w.arabic,
+              root: w.morphology?.root || w.morphology?.lemma || w.arabic,
+              dedup_level: w.rule === "NEW" ? 0 : parseInt(String(w.rule).replace(/[^0-9]/g, '') || '1', 10),
+              verdict: dbVerdict,
+              reason: w.reason,
+              xp_awarded: dbVerdict === "new" ? 10 : (dbVerdict === "reinforce" ? 5 : 0),
+              decided_at: new Date().toISOString(),
+              // Keep rule for local storage display (not sent to DB)
+              rule: w.rule,
+            };
+          });
           await provider.saveDecisions(decisions);
         } catch (e) {
           console.error("Failed to save decisions:", e);
@@ -279,24 +288,33 @@ export default function LessonScreen({ ayahKey, lang, translationId, tafsirId, t
   }
 
   if (isAyahComplete) {
+    const isSurahDone = !data.nextAyahKey;
+    const surahId = parseInt(ayahKey.split(":")[0]);
     return (
       <div className={`flex-1 flex flex-col justify-center p-6 ${isDark ? 'bg-[#0B1121]' : 'bg-[#F0F4F8]'}`}>
         <div className="bg-gradient-to-br from-green to-green-dark rounded-[var(--radius-card)] p-8 text-white text-center mb-3 animate-pop-in shadow-xl">
-          <div className="text-[60px] mb-4">🎉</div>
-          <h3 className="text-[26px] font-black mb-2">Ayah Complete!</h3>
+          <div className="text-[60px] mb-4">{isSurahDone ? '🏆' : '🎉'}</div>
+          <h3 className="text-[26px] font-black mb-2">{isSurahDone ? 'Surah Complete!' : 'Ayah Complete!'}</h3>
           <p className="text-[15px] opacity-90 mb-8 font-bold">
             You reviewed {data.words.length} words in Surah {data.ayahKey}
           </p>
           
           <div className="flex flex-col gap-3">
-            {data.nextAyahKey ? (
+            {isSurahDone ? (
+              <button
+                onClick={() => onSurahComplete(surahId)}
+                className="w-full py-4 bg-white text-green-dark rounded-[var(--radius-card)] font-extrabold text-[16px] border-none cursor-pointer hover:bg-gray-50 active:scale-95 transition-all shadow-md"
+              >
+                Choose Next Surah →
+              </button>
+            ) : (
               <button
                 onClick={handleNextAyah}
                 className="w-full py-4 bg-white text-green-dark rounded-[var(--radius-card)] font-extrabold text-[16px] border-none cursor-pointer hover:bg-gray-50 active:scale-95 transition-all shadow-md"
               >
                 Continue to Ayah {data.nextAyahKey} →
               </button>
-            ) : null}
+            )}
             <button
               onClick={onGoHome}
               className="w-full py-4 bg-transparent border-2 border-white/30 text-white rounded-[var(--radius-card)] font-bold text-[15px] cursor-pointer hover:bg-white/10 transition-all"

@@ -37,14 +37,23 @@ export async function POST(request: NextRequest) {
       .delete()
       .eq("user_id", profile.id);
 
-    // 3. Reset user_progress XP and counts
+    // 3. Delete all daily_goals entries
+    await supabaseAdmin
+      .from("daily_goals")
+      .delete()
+      .eq("user_id", profile.id);
+
+    // 4. Reset user_progress XP and counts
     await supabaseAdmin
       .from("user_progress")
       .update({
         xp: 0,
-        vocabulary_count: 0,
+        total_words_learned: 0,
+        total_roots_learned: 0,
+        total_reviews: 0,
         current_ayah: "1:1",
         current_juz: 1,
+        surah_progress: { completedSurahs: [], currentSurahId: 1, surahAyahMap: {} },
       })
       .eq("user_id", profile.id);
 
