@@ -156,7 +156,7 @@ export default function OnboardingScreen({ onLogin, onGuest }: OnboardingScreenP
           Login with Quran Foundation
         </button>
 
-        {/* Google Testing Action */}
+        {/* Google Testing Action (Commented out for later retrieval)
         <button
           onClick={async () => {
             const { supabase } = await import("@/lib/supabase");
@@ -172,6 +172,7 @@ export default function OnboardingScreen({ onLogin, onGuest }: OnboardingScreenP
           <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
           Login with Google
         </button>
+        */}
 
         {/* Guest Mode Action */}
         {isLocalhost && (
